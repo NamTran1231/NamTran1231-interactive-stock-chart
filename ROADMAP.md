@@ -101,3 +101,42 @@ Vì nhóm có 4 thành viên, chúng ta chia các cấu trúc dữ liệu cốt 
 ## 📈 Giai đoạn 2 & 3 (Tóm tắt ngắn gọn)
 - **Giai đoạn 2 (Đo lường):** Tổng hợp kết quả từ Thành viên 4 vào báo cáo `docs/complexity_analysis.md`, chứng minh các cấu trúc đạt đúng chuẩn Big-O ($O(\log N)$, $O(1)$).
 - **Giai đoạn 3 (GUI & Stream - Bonus):** Lắp ráp các module lõi này vào khung cửa sổ `PyQt6` (`chart_canvas.py`, `main_window.py`) đã có sẵn trong repo để vẽ biểu đồ và chạy luồng dữ liệu thời gian thực.
+
+---
+
+## 📅 Bảng kế hoạch tiến độ & Tiêu chí Nghiệm thu (Stage 1 Timeline & Check-in)
+
+Kế hoạch tiến độ thực hiện Giai đoạn 1 kéo dài trong **3 tuần**, được phân bổ chi tiết cho từng thành viên kèm theo tiêu chí nghiệm thu rõ ràng (Definition of Done).
+
+### 1. Bảng phân công tiến độ theo tuần
+
+| Tuần | Nhiệm vụ cụ thể | Người phụ trách | Thời hạn dự kiến | Trạng thái |
+| :--- | :--- | :--- | :--- | :--- |
+| **Tuần 1** | - Tìm hiểu lý thuyết Ring Buffer & Đọc file CSV.<br>- Triển khai `src/core/ring_buffer.py` và viết Unit Test.<br>- Tìm hiểu lý thuyết Sliding Window & Monotonic Deque.<br>- Triển khai `src/algorithms/sliding_window.py` và viết Unit Test. | **Thành viên 1**<br><br>**Thành viên 2** | Cuối Tuần 1 | [ ] Chưa xong |
+| **Tuần 2** | - Tìm hiểu lý thuyết Cây phân đoạn (Segment Tree / RMQ).<br>- Triển khai `src/algorithms/segment_tree.py` và viết Unit Test.<br>- Thiết kế khung giao diện dòng lệnh (CLI) hiển thị dữ liệu mẫu.<br>- Xây dựng bộ đo benchmark thời gian & test harness. | **Thành viên 3**<br><br>**Thành viên 4** | Cuối Tuần 2 | [ ] Chưa xong |
+| **Tuần 3** | - Tích hợp toàn bộ 4 module (Ring Buffer + Sliding Window + Segment Tree) vào chương trình CLI chính (`src/main_cli.py`).<br>- Chạy kiểm thử toàn bộ hệ thống (`pytest`), fix bug và hoàn thiện báo cáo Stage 1. | **Toàn bộ nhóm (Cả 4 thành viên)** | Cuối Tuần 3 | [ ] Chưa xong |
+
+---
+
+### 2. Tiêu chí Nghiệm thu (Acceptance Criteria) cho từng Role
+
+Một task/module được coi là **hoàn thành (Done)** khi đáp ứng các điều kiện sau:
+
+- **Thành viên 1 (Ring Buffer & Ingestion):**
+  - Đọc thành công file CSV lịch sử (ví dụ: `BTC-USD.csv` hoặc `AAPL.csv`) vào cấu trúc dữ liệu.
+  - Ring Buffer hoạt động chính xác dung lượng cố định, khi đẩy vượt quá dung lượng sẽ tự động ghi đè phần tử cũ nhất mà không gây lỗi tràn bộ nhớ (IndexError/Memory leak).
+  - Có ít nhất 3 unit test trong `tests/test_ring_buffer.py` đạt trạng thái `PASSED`.
+
+- **Thành viên 2 (Sliding Window Min/Max):**
+  - Tính toán chính xác giá `High` lớn nhất và `Low` nhỏ nhất trong cửa sổ trượt với độ phức tạp $O(1)$ amortized mỗi khi trượt cửa sổ.
+  - Có ít nhất 3 unit test kiểm tra các trường hợp biên (mảng rỗng, cửa sổ lớn hơn kích thước mảng, giá trị âm/dương) đạt `PASSED`.
+
+- **Thành viên 3 (Segment Tree / Range Query):**
+  - Xây dựng thành công cây Segment Tree từ mảng giá trị với thời gian $O(N)$.
+  - Truy vấn `query_min_max(L, R)` trả về kết quả chính xác trong mọi khoảng $L, R$ hợp lệ với độ phức tạp $O(\log N)$.
+  - Có ít nhất 3 unit test trong `tests/test_segment_tree.py` đạt `PASSED`.
+
+- **Thành viên 4 (CLI, Test Runner & Benchmark):**
+  - Chạy lệnh `pytest` thực thi toàn bộ các test case của nhóm mà không có lỗi.
+  - Chạy script `src/main_cli.py` hiển thị thông tin tóm tắt và kết quả truy vấn qua Terminal một cách rõ ràng, dễ đọc.
+  - Hoàn thành script đo lường benchmark cơ bản cho thấy các cấu trúc dữ liệu chạy đúng kỳ vọng về mặt lý thuyết.
