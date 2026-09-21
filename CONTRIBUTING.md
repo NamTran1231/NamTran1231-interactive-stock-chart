@@ -4,16 +4,20 @@ This document outlines the collaborative workflow, branching strategy, and commi
 
 ---
 
-## 1. Branching Strategy
+## 1. Branching Strategy (Stage-Based Workflow)
 
-To maintain codebase stability and satisfy academic Git criteria, direct pushes to the `main` branch are strictly prohibited.
+To maintain codebase stability, ensure clean version control history, and cleanly separate academic grading milestones, direct pushes to the `main` branch are strictly prohibited.
 
 * **`main` Branch:** Represents production-ready, stable, and tested code. Protected against direct commits.
-* **Feature Branches (`feature/`):** Each team member works exclusively on their assigned feature branch:
-  * `feature/canvas-rendering` — Developer 1 (Custom Canvas, Coordinates & Viewport)
-  * `feature/segment-tree-quadtree` — Developer 2 (Segment Tree & 2D Quadtree)
-  * `feature/data-pipeline-lttb` — Developer 3 (CSV Loader, Ring Buffer & LTTB)
-  * `feature/main-window-patterns` — Developer 4 (UI Shell, Design Patterns & Tests)
+* **Stage-Based Feature Branches (`feature/stageX-...`):** Each team member works exclusively on their assigned feature branch corresponding to the active project stage:
+
+#### 📌 Stage 1: Core Custom DSA Engine & Terminal CLI
+* `feature/stage1-ring-buffer` — Developer 1 (CSV Ingestion & Ring Buffer)
+* `feature/stage1-sliding-window` — Developer 2 (Sliding Window Min/Max)
+* `feature/stage1-segment-tree` — Developer 3 (Segment Tree & Range Query)
+* `feature/stage1-cli-benchmark` — Developer 4 (CLI Visualizer, Test Runner & Integration)
+
+*(Note: For Stage 2 and Stage 3, new branches prefixed with `feature/stage2-...` and `feature/stage3-...` will be created accordingly upon completion of the previous stage).*
 
 ---
 
