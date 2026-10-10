@@ -5,44 +5,43 @@ import threading
 class RingBuffer:
 
     def __init__(self, max_size: int):
-        """Khởi tạo bộ đệm vòng với kích thước tối đa cố định.
+        """Initialize a ring buffer with a fixed maximum size.
 
-        - max_size: Số lượng phần tử tối đa mà bộ đệm có thể chứa.
+        - max_size: The maximum number of elements the buffer can hold.
         """
         self.max_size = max_size
 
-        # Sử dụng deque với thuộc tính maxlen.
-        # Khi bộ đệm đầy, phần tử cũ nhất ở đầu sẽ tự động bị xóa khi thêm
-        # phần tử mới vào cuối.
+        # Use deque with the maxlen attribute.
+        # When the buffer is full, the oldest element at the head
+        # is automatically evicted when a new element is appended.
         self._buffer = deque(maxlen=max_size)
 
-        # Tạo Lock để bảo vệ dữ liệu khi chạy đa luồng (Thread-safe)
+        # Create a Lock for thread-safe data access.
         self._lock = threading.Lock()
 
     def append(self, item) -> None:
-        """Thêm một phần tử mới vào cuối bộ đệm (Tự động ghi đè nếu đầy)."""
+        """Append a new item to the buffer (automatically overwrites if full)."""
         with self._lock:
             self._buffer.append(item)
 
     def get_all(self) -> list:
-        """Lấy toàn bộ dữ liệu hiện tại trong bộ đệm dưới dạng một danh sách
-        (list)."""
+        """Return all current data in the buffer as a list."""
         with self._lock:
             return list(self._buffer)
 
     def clear(self) -> None:
-        """Xóa sạch toàn bộ dữ liệu trong bộ đệm."""
+        """Clear all data in the buffer."""
         with self._lock:
             self._buffer.clear()
 
     @property
     def size(self) -> int:
-        """Trả về số lượng phần tử hiện tại đang có trong bộ đệm."""
+        """Return the current number of elements in the buffer."""
         with self._lock:
             return len(self._buffer)
 
     @property
     def is_full(self) -> bool:
-        """Kiểm tra xem bộ đệm đã đầy (đạt kích thước tối đa) hay chưa."""
+        """"Check whether the buffer is full (reached maximum size)."""
         with self._lock:
             return len(self._buffer) == self.max_size

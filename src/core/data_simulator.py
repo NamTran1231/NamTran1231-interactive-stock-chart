@@ -6,46 +6,46 @@ from ring_buffer import RingBuffer
 
 
 class DataSimulator(QThread):
-    # Tạo một tín hiệu (Signal) để gửi từng điểm dữ liệu sang giao diện UI hiển thị
+    # Create a signal to send individual data points to the UI for display
     new_data_signal = pyqtSignal(dict)
 
     def __init__(self, csv_file_path: str, buffer_size: int = 1000):
-        """Khởi tạo luồng mô phỏng dữ liệu thời gian thực từ file CSV.
+        """Initialize the real-time data simulation thread from a CSV file.
 
-        - csv_file_path: Đường dẫn tới file CSV (ví dụ: 'data/AAPL.csv')
-        - buffer_size: Kích thước tối đa cho bộ đệm vòng (mặc định 1000 phần tử)
+        - csv_file_path: Path to the CSV file (e.g., 'data/AAPL.csv')
+        - buffer_size: Maximum size for the ring buffer (default 1000 elements)
         """
         super().__init__()
         self.csv_file_path = csv_file_path
 
-        # Khởi tạo bộ đệm vòng chuyên dụng đã lập trình ở bước trước
+        # Initialize the specialized ring buffer programmed in the previous step
         self.buffer = RingBuffer(max_size=buffer_size)
 
-        # Biến cờ để kiểm soát trạng thái chạy/dừng của luồng
+        # Flag variable to control the run/stop state of the thread
         self._is_running = False
 
     def run(self):
-        """Hàm chạy ngầm tự động kích hoạt khi gọi lệnh .start()"""
-        # Kiểm tra xem file CSV có tồn tại không trước khi đọc để tránh báo lỗi
+        """Background worker function automatically triggered when calling .start()"""
+        # Check if the CSV file exists before reading to avoid errors
         if not os.path.exists(self.csv_file_path):
-            print(f"Lỗi: Không tìm thấy file dữ liệu tại {self.csv_file_path}")
+            print(f"Error: Data file not found at {self.csv_file_path}")
             return
 
         try:
-            # 1. Đọc dữ liệu từ file CSV lên bằng pandas
+            # 1. Read data from the CSV file using pandas
             df = pd.read_csv(self.csv_file_path)
             self._is_running = True
 
             print(
-                f"=== Bắt đầu mô phỏng truyền dữ liệu từ: {self.csv_file_path} ==="
+                f"=== Started data streaming simulation from: {self.csv_file_path} ==="
             )
 
-            # 2. Duyệt qua từng dòng dữ liệu trong file CSV
+            # 2. Iterate through each row of data in the CSV file
             for _, row in df.iterrows():
                 if not self._is_running:
                     break
 
-                # Chuyển dòng dữ liệu thành một dictionary sạch sẽ
+                # Convert the data row into a clean dictionary
                 data_point = {
                     "Date": str(row["Date"]),
                     "Open": float(row["Open"]),
@@ -55,24 +55,24 @@ class DataSimulator(QThread):
                     "Volume": float(row["Volume"]),
                 }
 
-                # 3. CHÍNH THỨC TRUYỀN DỮ LIỆU VÀO BỘ ĐỆM VÒNG (RingBuffer)
+                # 3. PUSH DATA INTO THE RING BUFFER
                 self.buffer.append(data_point)
 
-                # 4. Phát tín hiệu kèm dữ liệu ra ngoài (cho UI hoặc thuật toán xử lý tiếp)
+                # 4. Emit the signal along with data outward (for UI or processing algorithms)
                 self.new_data_signal.emit(data_point)
 
-                # Giả lập khoảng thời gian chờ giữa các phiên (ví dụ: 0.1 giây xuất hiện 1 nến mới)
-                # Bạn có thể chỉnh số này nhỏ hơn (ví dụ: 0.01) để dữ liệu chạy nhanh hơn
+                # Simulate a delay between frames (e.g., 0.1 seconds per new candle)
+                # You can make this smaller (e.g., 0.01) for faster streaming
                 time.sleep(0.1)
 
             print(
-                f"=== Kết thúc mô phỏng truyền dữ liệu: {self.csv_file_path} ==="
+                f"=== Ended data streaming simulation: {self.csv_file_path} ==="
             )
 
         except Exception as e:
-            print(f"Có lỗi xảy ra trong quá trình đọc/truyền dữ liệu: {e}")
+            print(f"An error occurred during data reading/streaming: {e}")
 
     def stop(self):
-        """Hàm dừng luồng mô phỏng một cách an toàn."""
+        """Safely stop the simulation thread."""
         self._is_running = False
-        self.wait()  # Chờ luồng tắt hẳn để tránh xung đột bộ nhớ
+        self.wait()  # Wait for the thread to fully shut down to avoid memory conflicts
