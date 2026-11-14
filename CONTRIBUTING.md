@@ -4,20 +4,25 @@ This document outlines the collaborative workflow, branching strategy, and commi
 
 ---
 
-## 1. Branching Strategy (Stage-Based Workflow)
+## 1. Branching Strategy (Milestone-Based Workflow)
 
 To maintain codebase stability, ensure clean version control history, and cleanly separate academic grading milestones, direct pushes to the `main` branch are strictly prohibited.
 
 * **`main` Branch:** Represents production-ready, stable, and tested code. Protected against direct commits.
-* **Stage-Based Feature Branches (`feature/stageX-...`):** Each team member works exclusively on their assigned feature branch corresponding to the active project stage:
+* **Short-lived branches:** Use `feature/m<N>-<task>` for new implementation work and `docs/<task>` for documentation. Start from current `main`, open a focused PR, then start the next task on a fresh branch. Ownership is stable; a branch represents a task, not a permanent personal workspace.
 
-#### 📌 Stage 1: Core Custom DSA Engine & Terminal CLI
-* `feature/stage1-ring-buffer` — Developer 1 (CSV Ingestion & Ring Buffer)
-* `feature/stage1-sliding-window` — Developer 2 (Sliding Window Min/Max)
-* `feature/stage1-segment-tree` — Developer 3 (Segment Tree & Range Query)
-* `feature/stage1-cli-benchmark` — Developer 4 (CLI Visualizer, Test Runner & Integration)
+The M0–M6 plan in `ROADMAP.md` replaces the three-stage naming scheme:
 
-*(Note: For Stage 2 and Stage 3, new branches prefixed with `feature/stage2-...` and `feature/stage3-...` will be created accordingly upon completion of the previous stage).*
+| Developer | Ownership | Example future branch |
+| --- | --- | --- |
+| 1 | Candle model, CSV, custom array Ring Buffer | `feature/m1-csv-loader` |
+| 2 | QPainter rendering, coordinates, interactions | `feature/m2-chart-canvas` |
+| 3 | Custom Segment Tree, scan oracle, query tests | `feature/m3-segment-tree` |
+| 4 | CLI/app integration, replay, benchmarks, docs | `feature/m1-cli-summary` |
+
+Example branches are not claims that they already exist. Keep existing `feature/stage1-*`, `feature/ring-buffer`, and `test` history. Do not delete or rewrite teammate work. Review the Ring Buffer prototype and move useful changes through focused PRs; do not blindly merge its PyQt5 simulator or generated `.pyc` files. Agree with the contributor before migrating work.
+
+Each owner tests their module; Developer 4 coordinates integration/review. Coordinate cross-module changes through `docs/interfaces.md`. Sliding-window analytics is optional unless required by the course rubric.
 
 ---
 
