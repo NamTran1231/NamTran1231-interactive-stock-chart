@@ -1,142 +1,79 @@
-# Kế Hoạch Phát Triển Dự Án (Roadmap)
-> **Dự án:** Xây dựng Động cơ Biểu đồ Chứng khoán Tương tác & Real-Time (Môn Cấu trúc Dữ liệu & Giải thuật - DSA)
-> **Đối tượng:** Nhóm 4 sinh viên năm đầu/giữa đại học.
+# ROADMAP — DSA Stock Chart
 
-Tài liệu này chia dự án thành **3 giai đoạn** để nhóm không bị quá tải, đồng thời tập trung tối đa vào phần cốt lõi (DSA) để đạt điểm cao nhất, trước khi tiến đến phần giao diện đồ họa.
+## 1. Hướng đi thống nhất
 
----
+Thay “DSA → benchmark → GUI bonus” bằng **M0–M6**: demo nhỏ chạy sớm, tích hợp DSA vào tính năng rồi đo hiệu quả. Bản đầu: một mã/một timeframe intraday, CSV và offline replay, Python + PyQt6/QPainter.
 
-## 🎯 Tổng quan 3 Giai đoạn Phát triển
+Ring Buffer và Segment Tree phải tự cài đặt; không dùng deque/thư viện cây để thay phần DSA cần chấm. List được dùng làm mảng; thư viện chuẩn `csv` được dùng để parsing.
 
-- **Giai đoạn 1: Lõi DSA & Giao diện dòng lệnh (CLI)** *(Trọng tâm lấy điểm A+)*: Xây dựng toàn bộ các cấu trúc dữ liệu và giải thuật từ đầu (from scratch) bằng Python thuần, chạy thử nghiệm qua Terminal.
-- **Giai đoạn 2: Đo lường & Đánh giá hiệu năng (Benchmarking)**: Viết các script đo thời gian chạy (runtime), độ phức tạp Big-O và bộ nhớ với tập dữ liệu từ 10.000 đến 300.000 bản ghi.
-- **Giai đoạn 3: Giao diện đồ họa PyQt6 & Stream Real-time** *(Phần nâng cao/Bonus)*: Tích hợp giao diện trực quan, zoom/pan mượt mà và luồng dữ liệu giả lập (`QThread`).
+**Rubric và deadline chưa được cung cấp.** Không gán lại lịch ba tuần hay hứa điểm số. Sliding Window/Quadtree/LTTB tùy chọn nếu rubric không bắt buộc.
 
----
+## 2. Timeline theo dependencies và check-in
 
-## 🚀 Giai đoạn 1: Phân công 4 Vai trò cho 4 Thành viên (Lõi DSA & CLI)
+Luồng chính **M0 → M1 → M2 → M3 → M4 → M5**. Sau khi chốt contracts, thành viên 3 có thể phát triển/test cây song song M2. M6 chỉ bắt đầu khi lõi ổn định và còn thời gian.
 
-Vì nhóm có 4 thành viên, chúng ta chia các cấu trúc dữ liệu cốt lõi thành 4 module độc lập để mỗi bạn tự tay thiết kế và kiểm thử.
+| Mốc | Nhiệm vụ | Chủ trì | Điều kiện bắt đầu | Trạng thái |
+| --- | --- | --- | --- | --- |
+| M0 | Đồng bộ tài liệu, contracts và nghiên cứu | 4 + cả nhóm review | Đã đối chiếu remote | [ ] Chờ review/merge |
+| M1 | Candle, CSV loader, synthetic fixture, CLI summary | 1 + 4 | M0 | [ ] Chưa nghiệm thu |
+| M2 | Chart nhỏ, axes, pan/zoom/hover, clipping | 2 + 4 | M1 | [ ] Chưa nghiệm thu |
+| M3 | Custom Ring Buffer/Segment Tree; scan oracle; autoscale | 1 + 3 + 2 | Contracts M1; tích hợp sau M2 | [ ] Chưa nghiệm thu |
+| M4 | Timer replay, controls và append/replace | 4 + 1 + 3 | M3 | [ ] Chưa nghiệm thu |
+| M5 | OHLCV grouping, benchmark và report | 4 + cả nhóm | M4 đúng | [ ] Chưa nghiệm thu |
+| M6 | Extension có mục đích | Theo extension | Lõi ổn định, còn thời gian | [ ] Tùy chọn |
 
----
+### Acceptance criteria
 
-### 👤 Thành viên 1: Module Ingestion & Ring Buffer (Hàng đợi vòng)
-- **Nhiệm vụ & Sản phẩm:** Xây dựng cấu trúc dữ liệu **Ring Buffer (Circular Queue)** để lưu trữ các tick giá/nến đến liên tục trong bộ nhớ cố định, không bị tràn hay cấp phát lại bộ nhớ liên tục. Viết hàm đọc file CSV lịch sử giá (Open, High, Low, Close, Volume).
-- **Lý thuyết & Từ khóa tìm kiếm Google/YouTube:**
-  - Từ khóa: `Circular Buffer Python implementation`, `Ring buffer FIFO array`.
-  - Khái niệm: Con trỏ đầu (`head`), con trỏ đuôi (`tail`), cách quản lý dung lượng cố định (fixed capacity) và ghi đè dữ liệu cũ khi đầy (`overwrite`).
-- **Bài tập thực hành trước khi viết code dự án:**
-  - Viết một class `CircularBuffer` có dung lượng cố định là 5 phần tử. Thêm vào 7 phần tử số nguyên, in ra xem các phần tử cũ nhất có bị ghi đè đúng cách không.
-- **File đích & Giao diện mã nguồn (Class/Signatures):**
-  - File: `src/core/ring_buffer.py`
-  - Các hàm chính:
-    ```python
-    class RingBuffer:
-        def __init__(self, capacity: int): ...
-        def push(self, item: dict) -> None: ...
-        def get_all(self) -> list: ...
-        def is_full(self) -> bool: ...
-    ```
+- **M0:** Tài liệu thống nhất scope/status/contracts, nguồn có link, unresolved rubric/deadline rõ ràng. Kiểm tra lại API nguồn trước implementation.
+- **M1:** Synthetic fixture xác định, không phụ thuộc download; parse đúng; lỗi có số dòng; test empty/single-row, malformed, duplicate/out-of-order; README có lệnh setup/demo thực sự chạy được.
+- **M2:** Khoảng 100 nến hiển thị đúng OHLC, axes có nghĩa, pan/zoom/hover đúng; xử lý resize, flat prices, empty data và bounds. Autoscale ban đầu được phép scan.
+- **M3:** Tree build O(N), query/point update O(log N), storage O(N); khớp scan qua random ranges và updates. Buffer qua nhiều vòng wraparound đúng, capacity > 0. Chart thay scan bằng tree; giữ scan làm oracle. Fractional volume so với tolerance.
+- **M4:** Replay xác định cho kết quả mong đợi; cùng timestamp replace latest, mới hơn append, cũ hơn reject; không rebuild toàn bộ tree mỗi event. Test restart và capacity expansion. Chart/stats không lộ nến sau cursor.
+- **M5:** Grouping giữ đúng OHLCV; benchmark ghi môi trường, seed/count, baseline, repeated runs; tách loading/query/ingestion/rendering. Chỉ công bố tốc độ thực đo.
+- **M6:** Mỗi extension có mục đích người dùng, edge cases và validation. Không mặc định làm tất cả.
 
----
+## 3. Đúng 4 vai trò và đầu ra
 
-### 👤 Thành viên 2: Module Sliding Window Min/Max (Theo dõi đỉnh/đáy trượt)
-- **Nhiệm vụ & Sản phẩm:** Xây dựng giải thuật/cấu trúc dữ liệu để tìm giá trị cao nhất (`High`) và thấp nhất (`Low`) trong một cửa sổ thời gian trượt (Sliding Window, ví dụ: 20 nến gần nhất) với độ phức tạp tối ưu $O(1)$ hoặc $O(\log K)$ thay vì quét lại toàn bộ mảng $O(K)$.
-- **Lý thuyết & Từ khóa tìm kiếm Google/YouTube:**
-  - Từ khóa: `Sliding Window Maximum Monotonic Queue Python`, `Deque sliding window min max`.
-  - Khái niệm: Hàng đợi đơn điệu (Monotonic Queue) lưu trữ chỉ số (index), loại bỏ các phần tử cũ và nhỏ hơn/lớn hơn ở hai đầu deque.
-- **Bài tập thực hành trước khi viết code dự án:**
-  - Cho một mảng số nguyên `[1, 3, -1, -3, 5, 3, 6, 7]` và kích thước cửa sổ `k = 3`. Hãy viết hàm dùng Monotonic Deque để tìm giá trị lớn nhất trong từng cửa sổ trượt.
-- **File đích & Giao diện mã nguồn (Class/Signatures):**
-  - File: `src/algorithms/sliding_window.py`
-  - Các hàm chính:
-    ```python
-    class SlidingWindowMinMax:
-        def __init__(self, window_size: int): ...
-        def add_price(self, high: float, low: float) -> None: ...
-        def get_current_min_max(self) -> tuple[float, float]: ...
-    ```
+Chủ dự án đã chấp thuận phân công mới. Mỗi người tự test module mình, review chéo và đọc [interfaces](docs/interfaces.md) trước triển khai. Role 4 điều phối, không gánh toàn bộ test.
 
----
+### Thành viên 1 — Dữ liệu, CSV, Ring Buffer
 
-### 👤 Thành viên 3: Module Range Query & Segment Tree (Cây phân đoạn)
-- **Nhiệm vụ & Sản phẩm:** Xây dựng cấu trúc **Segment Tree** (Cây phân đoạn) để thực hiện các truy vấn khoảng (Range Minimum Query - RMQ và Range Sum Volume) trên toàn bộ dữ liệu lịch sử cực nhanh với độ phức tạp $O(\log N)$.
-- **Lý thuyết & Từ khóa tìm kiếm Google/YouTube:**
-  - Từ khóa: `Segment Tree Range Minimum Query Python`, `Segment tree data structure tutorial`.
-  - Khái niệm: Cây nhị phân biểu diễn các đoạn khoảng, xây dựng cây mất $O(N)$, truy vấn và cập nhật mất $O(\log N)$.
-- **Bài tập thực hành trước khi viết code dự án:**
-  - Xây dựng một Segment Tree tìm giá trị nhỏ nhất (Range Minimum) cho mảng `[8, 7, 3, 9, 5, 1, 10]`, sau đó thử truy vấn đoạn từ chỉ số 1 đến 5.
-- **File đích & Giao diện mã nguồn (Class/Signatures):**
-  - File: `src/algorithms/segment_tree.py`
-  - Các hàm chính:
-    ```python
-    class SegmentTree:
-        def __init__(self, data: list[float]): ...
-        def query_min_max(self, L: int, R: int) -> tuple[float, float]: ...
-        def update(self, index: int, new_value: float) -> None: ...
-    ```
+- **Deliverables:** Candle độc lập Qt, loader validate, fixture synthetic, buffer mảng vòng tự quản lý index/size; full history riêng.
+- **Học trước:** `Python dataclass CSV validation`, `circular buffer array head tail modulo`.
+- **Bài tập:** Capacity 3, push 1–8 còn `[6, 7, 8]`; parse 3 nến và báo lỗi theo dòng.
+- **File/API dự kiến:** `src/core/candle.py` — `Candle`; `src/core/csv_loader.py` — `load_candles(path: str) -> list[Candle]`; `src/core/ring_buffer.py` — `RingBuffer(capacity: int)`, `push(candle)`, `get_all()`, `is_full()`.
+- **Done:** CSV đạt contracts; invalid capacity bị từ chối; wraparound đúng, push O(1), snapshot O(K). Cải tiến prototype hiện có; deque wrapper chưa phải DSA from scratch.
 
----
+### Thành viên 2 — Rendering, tọa độ, interactions
 
-### 👤 Thành viên 4: Module CLI Visualizer, Benchmark & Test Runner (Trình điều khiển & Kiểm thử)
-- **Nhiệm vụ & Sản phẩm:** 
-  1. Viết giao diện dòng lệnh (CLI) hiển thị bảng nến ASCII trực quan hoặc tóm tắt dữ liệu qua Terminal.
-  2. Viết tập kiểm thử tự động (Unit Tests bằng `pytest`) cho 3 thành viên trên.
-  3. Viết script benchmark đo thời gian thực thi (mili-giây) và bộ nhớ khi chạy với 10k, 50k, 300k dòng dữ liệu CSV.
-- **Lý thuyết & Từ khóa tìm kiếm Google/YouTube:**
-  - Từ khóa: `Python pytest tutorial`, `Python timeit time performance measurement`, `Building terminal UI Python tables`.
-  - Khái niệm: Đo benchmark thời gian chạy bằng thư viện `time` hoặc `timeit`, viết test case kiểm tra biên (edge cases).
-- **Bài tập thực hành trước khi viết code dự án:**
-  - Viết một file test `pytest` đơn giản kiểm tra hàm tính tổng hai số và dùng `time.perf_counter()` để đo thời gian chạy của một vòng lặp 1 triệu lần.
-- **File đích & Giao diện mã nguồn (Class/Signatures):**
-  - File: `src/main_cli.py`, `tests/test_performance.py`
-  - Các hàm chính:
-    ```python
-    def run_cli_demo(csv_path: str) -> None: ...
-    def benchmark_segment_tree() -> None: ...
-    ```
+- **Deliverables:** QPainter candles/axes, viewport/clipping, pan/zoom/hover; nối query tree ở M3.
+- **Học trước:** `PyQt6 QPainter QWidget paintEvent`, `affine transform world screen coordinates`, `cursor anchored zoom`.
+- **Bài tập:** Vẽ 10 nến, round trip world↔screen, zoom giữ điểm dưới cursor.
+- **File/API dự kiến:** `src/core/coordinate_math.py` — `world_to_screen(...)`, `screen_to_world(...)`; `src/ui/chart_canvas.py` — `ChartCanvasWidget`, `paintEvent(self, event)`.
+- **Done:** Đạt M2; không vẽ toàn bộ history ngoài viewport; hover ngoài data không trả nến tùy ý. Sliding Window không còn nhiệm vụ bắt buộc chính.
 
----
+### Thành viên 3 — Segment Tree và oracle
 
-## 📈 Giai đoạn 2 & 3 (Tóm tắt ngắn gọn)
-- **Giai đoạn 2 (Đo lường):** Tổng hợp kết quả từ Thành viên 4 vào báo cáo `docs/complexity_analysis.md`, chứng minh các cấu trúc đạt đúng chuẩn Big-O ($O(\log N)$, $O(1)$).
-- **Giai đoạn 3 (GUI & Stream - Bonus):** Lắp ráp các module lõi này vào khung cửa sổ `PyQt6` (`chart_canvas.py`, `main_window.py`) đã có sẵn trong repo để vẽ biểu đồ và chạy luồng dữ liệu thời gian thực.
+- **Deliverables:** Custom tree min low/max high/sum volume; scan baseline; tests interval/update/capacity.
+- **Học trước:** `segment tree range minimum maximum sum point update`, `half open interval identity element`.
+- **Bài tập:** Tree trên 7 phần tử, so mọi đoạn với scan rồi cập nhật từng điểm.
+- **File/API dự kiến:** `src/algorithms/segment_tree.py` — `SegmentTree`, `query(left, right)`, `update(index, candle)`, `append(candle)`; `src/algorithms/range_scan.py` — `scan_range(...)`; dùng `RangeStats` trong interfaces.
+- **Done:** Đạt M3, đủ ba đại lượng; empty/invalid intervals rõ ràng; không gọi append có rebuild là worst-case O(log N).
 
----
+### Thành viên 4 — Integration, replay, benchmark
 
-## 📅 Bảng kế hoạch tiến độ & Tiêu chí Nghiệm thu (Stage 1 Timeline & Check-in)
+- **Deliverables:** CLI/app entry points, GUI shell, replay controller, end-to-end checks, benchmark harness, tài liệu/review.
+- **Học trước:** `Python argparse pytest tutorial`, `PyQt6 QTimer tutorial`, `Python perf_counter tracemalloc benchmark`.
+- **Bài tập:** CLI in 5 nến, timer phát lần lượt 5 record, đo scan và tree cùng input.
+- **File/API dự kiến:** `src/main_cli.py` — `run_cli_demo(csv_path: str)`; `src/main.py`; `src/ui/main_window.py`; `src/core/replay.py` — `ReplayController`; `benchmarks/benchmark_queries.py` — `run_benchmarks(...)`.
+- **Done:** Entry points chạy theo README, replay không lộ tương lai, checks toàn luồng đúng; phép đo tái lập. Mỗi role vẫn sở hữu test của mình.
 
-Kế hoạch tiến độ thực hiện Giai đoạn 1 kéo dài trong **3 tuần**, được phân bổ chi tiết cho từng thành viên kèm theo tiêu chí nghiệm thu rõ ràng (Definition of Done).
+Các file/API mới trên đây là kế hoạch, chưa phải implementation đã tạo.
 
-### 1. Bảng phân công tiến độ theo tuần
+## 4. Check-in và bước tiếp theo
 
-| Tuần | Nhiệm vụ cụ thể | Người phụ trách | Thời hạn dự kiến | Trạng thái |
-| :--- | :--- | :--- | :--- | :--- |
-| **Tuần 1** | - Tìm hiểu lý thuyết Ring Buffer & Đọc file CSV.<br>- Triển khai `src/core/ring_buffer.py` và viết Unit Test.<br>- Tìm hiểu lý thuyết Sliding Window & Monotonic Deque.<br>- Triển khai `src/algorithms/sliding_window.py` và viết Unit Test. | **Thành viên 1**<br><br>**Thành viên 2** | Cuối Tuần 1 | [ ] Chưa xong |
-| **Tuần 2** | - Tìm hiểu lý thuyết Cây phân đoạn (Segment Tree / RMQ).<br>- Triển khai `src/algorithms/segment_tree.py` và viết Unit Test.<br>- Thiết kế khung giao diện dòng lệnh (CLI) hiển thị dữ liệu mẫu.<br>- Xây dựng bộ đo benchmark thời gian & test harness. | **Thành viên 3**<br><br>**Thành viên 4** | Cuối Tuần 2 | [ ] Chưa xong |
-| **Tuần 3** | - Tích hợp toàn bộ 4 module (Ring Buffer + Sliding Window + Segment Tree) vào chương trình CLI chính (`src/main_cli.py`).<br>- Chạy kiểm thử toàn bộ hệ thống (`pytest`), fix bug và hoàn thiện báo cáo Stage 1. | **Toàn bộ nhóm (Cả 4 thành viên)** | Cuối Tuần 3 | [ ] Chưa xong |
+Mỗi check-in: demo phần chạy được, tests đã chạy, blocker, thay đổi contract và PR tiếp theo. Tick khi đạt nghiệm thu, không dựa vào số file/commit.
 
----
+**Nhiệm vụ implementation tiếp theo duy nhất: M1 — Candle model + CSV loader nhỏ + CLI summary.** Bổ sung rubric/deadline sớm; chưa biết vẫn có thể chốt contracts và fixture.
 
-### 2. Tiêu chí Nghiệm thu (Acceptance Criteria) cho từng Role
-
-Một task/module được coi là **hoàn thành (Done)** khi đáp ứng các điều kiện sau:
-
-- **Thành viên 1 (Ring Buffer & Ingestion):**
-  - Đọc thành công file CSV lịch sử (ví dụ: `BTC-USD.csv` hoặc `AAPL.csv`) vào cấu trúc dữ liệu.
-  - Ring Buffer hoạt động chính xác dung lượng cố định, khi đẩy vượt quá dung lượng sẽ tự động ghi đè phần tử cũ nhất mà không gây lỗi tràn bộ nhớ (IndexError/Memory leak).
-  - Có ít nhất 3 unit test trong `tests/test_ring_buffer.py` đạt trạng thái `PASSED`.
-
-- **Thành viên 2 (Sliding Window Min/Max):**
-  - Tính toán chính xác giá `High` lớn nhất và `Low` nhỏ nhất trong cửa sổ trượt với độ phức tạp $O(1)$ amortized mỗi khi trượt cửa sổ.
-  - Có ít nhất 3 unit test kiểm tra các trường hợp biên (mảng rỗng, cửa sổ lớn hơn kích thước mảng, giá trị âm/dương) đạt `PASSED`.
-
-- **Thành viên 3 (Segment Tree / Range Query):**
-  - Xây dựng thành công cây Segment Tree từ mảng giá trị với thời gian $O(N)$.
-  - Truy vấn `query_min_max(L, R)` trả về kết quả chính xác trong mọi khoảng $L, R$ hợp lệ với độ phức tạp $O(\log N)$.
-  - Có ít nhất 3 unit test trong `tests/test_segment_tree.py` đạt `PASSED`.
-
-- **Thành viên 4 (CLI, Test Runner & Benchmark):**
-  - Chạy lệnh `pytest` thực thi toàn bộ các test case của nhóm mà không có lỗi.
-  - Chạy script `src/main_cli.py` hiển thị thông tin tóm tắt và kết quả truy vấn qua Terminal một cách rõ ràng, dễ đọc.
-  - Hoàn thành script đo lường benchmark cơ bản cho thấy các cấu trúc dữ liệu chạy đúng kỳ vọng về mặt lý thuyết.
+Xem [CONTRIBUTING.md](CONTRIBUTING.md) cho workflow và [báo cáo nhóm](docs/team_plan_report.md) cho việc chuyển kế hoạch.
