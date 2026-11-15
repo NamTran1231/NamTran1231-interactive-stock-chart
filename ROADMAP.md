@@ -72,35 +72,37 @@ Các file/API mới trên đây là kế hoạch, chưa phải implementation đ
 
 ## 4. Phân công M1 — task giao cho từng thành viên
 
-**Mục tiêu M1:** CSV synthetic nhỏ → Candle hợp lệ → CLI hiển thị tóm tắt → một người khác chạy lại được theo README. Hưng và Nam triển khai chính; Dũng và Phát có đầu ra review/kiểm chứng cụ thể. Không cần hoàn thành GUI, Ring Buffer hoặc Segment Tree trong M1.
+**Mục tiêu M1:** CSV synthetic nhỏ → Candle hợp lệ → CLI hiển thị tóm tắt và có hướng dẫn chạy lại. **Hiện tại chỉ Hưng và Nam triển khai chính.** Phát và Dũng chưa được giao task kiểm thử riêng ở M1; có thể ôn kiến thức cho Segment Tree và GUI ở mốc sau.
 
 Các task dưới đây được giao theo tên trong roadmap; chưa phải GitHub Issues và chưa gán tài khoản GitHub. Nhánh là tên đề xuất, chưa xác nhận đã tồn tại. Mỗi người đọc `docs/interfaces.md` và `CONTRIBUTING.md` trước khi làm.
 
 | Task | Người phụ trách | Nhiệm vụ và file/đầu ra | Phụ thuộc | Trạng thái |
 | --- | --- | --- | --- | --- |
-| M1-01 | **Hưng**, Nam review | Xây immutable `Candle` và validation trong `src/core/candle.py`; tests trong `tests/test_candle.py` | Candle contract trong interfaces | [ ] Chưa nghiệm thu |
-| M1-02 | **Hưng**, Phát review | `src/core/csv_loader.py`, `load_candles(path) -> list[Candle]`; fixture synthetic 10–20 nến tại `tests/fixtures/candles_valid.csv`; `tests/test_csv_loader.py` | M1-01 | [ ] Chưa nghiệm thu |
-| M1-03 | **Nam**, Phát review kết quả | CLI nhận đường dẫn CSV, gọi loader, hiển thị số nến, timestamp đầu/cuối, min low, max high, tổng volume và vài dòng mẫu; `src/main_cli.py`, `tests/test_main_cli.py` | Chốt API với Hưng; tích hợp sau M1-02 | [ ] Chưa nghiệm thu |
-| M1-04 | **Phát**, Hưng xác nhận fixture | Tính độc lập thống kê fixture, ghi phép tính/kết quả trong `tests/fixtures/candles_expected.md`; đối chiếu CLI và review tests CSV | Fixture M1-02 ổn định; CLI để đối chiếu | [ ] Chưa nghiệm thu |
-| M1-05 | **Nam**, Dũng chạy lại | Bổ sung setup/dependencies cần thiết theo implementation thực và lệnh CLI/test đã chạy vào README; không cài Qt chỉ để chạy CLI | M1-02 + M1-03 | [ ] Chưa nghiệm thu |
-| M1-06 | **Dũng**, Nam xử lý phản hồi | Chạy theo README trên máy mình, kiểm tra valid/empty/single-row/missing-file; ghi lệnh, môi trường, actual/expected vào `docs/m1_checklist.md` và nhận xét trong PR | M1-04 + M1-05 | [ ] Chưa nghiệm thu |
+| M1-01A — Làm ngay | **Hưng** | Tạo `src/core/candle.py`: `@dataclass(frozen=True)` với timestamp: int và open/high/low/close/volume: float. Thêm demo trong khối `if __name__ == "__main__"` | Đọc Candle contract | [ ] Chưa nghiệm thu |
+| M1-03A — Làm ngay khi import được Candle | **Nam** | Tạo `src/main_cli.py`; import Candle của Hưng, tạo 3 nến mẫu, in mỗi nến một dòng và số nến bằng `len()` | M1-01A | [ ] Chưa nghiệm thu |
+| M1-02A — Giao sau lượt đầu | **Hưng** | Viết `load_candles(path) -> list[Candle]` trong `src/core/csv_loader.py`, đọc fixture chung bằng thư viện `csv` | M1-01A chạy được | [ ] Chưa nghiệm thu |
+| M1-03B — Giao sau lượt đầu | **Nam** | Thay danh sách viết sẵn bằng kết quả loader; in đủ 12 nến mẫu | M1-02A | [ ] Chưa nghiệm thu |
+| M1-01B / M1-02B — Hoàn thiện dữ liệu | **Hưng** | Thêm validation theo interfaces, lỗi có số dòng; viết tests model/CSV từng trường hợp | Loader cơ bản chạy được | [ ] Chưa nghiệm thu |
+| M1-03C / M1-05 — Hoàn thiện CLI | **Nam** | Nhận đường dẫn CSV; thống kê min low/max high/sum volume; xử lý lỗi/empty; tests CLI và README hướng dẫn chạy | Data validation ổn định | [ ] Chưa nghiệm thu |
 
-### Điều kiện hoàn thành từng task
+### Cách giao từng bước và nghiệm thu
 
-- **M1-01 — Hưng:** Fields đúng contract; timestamp UTC Unix seconds; numeric hữu hạn, volume không âm, OHLC hợp lệ; test hợp lệ/không hợp lệ đạt; không phụ thuộc Qt. Không áp điều kiện giá luôn dương.
-- **M1-02 — Hưng:** Load đúng fixture; file rỗng/chỉ header trả `[]`, single-row xử lý đúng; reject malformed/duplicate/out-of-order; lỗi có số dòng/lý do; tests đạt. Synthetic được ghi nhãn và không cần download. Dataset daily prototype không được tự coi tương thích intraday.
-- **M1-03 — Nam:** Thống kê tính bằng scan đơn giản, không chờ tree; empty không gọi min/max trên list rỗng; lỗi được thông báo rõ và CLI trả exit status khác 0; test luồng thành công/thất bại đạt. Có thể làm phần hiển thị bằng Candle mẫu trước, không viết loader thứ hai.
-- **M1-04 — Phát:** Kết quả tính độc lập có thể kiểm tra lại, dùng low/high chứ không nhầm close; tổng volume so với tolerance nếu cần; đối chiếu output CLI và gửi review. Không viết Segment Tree chỉ để hoàn thành task này.
-- **M1-05 — Nam:** README có setup và command thực đã chạy; dependency chỉ thêm khi cần; không ghi CI hoạt động nếu workflow vẫn rỗng.
-- **M1-06 — Dũng:** Có bằng chứng chạy lại và checklist rõ expected/actual; lỗi được phản hồi và chạy lại sau sửa. Chỉ tick đạt khi pass hoặc ghi rõ blocker chưa giải quyết; chưa cần triển khai GUI.
+**Chỉ giao lượt đầu M1-01A và M1-03A ngay bây giờ.** Chạy được rồi mới giao bước tiếp; không yêu cầu người mới giải quyết toàn bộ bảng một lần.
+
+- **Hưng, bước đầu:** Học `Python dataclass cơ bản`, khai báo đủ sáu trường. Từ repo root chạy `python -m src.core.candle` (hoặc `python3`). Demo tạo một Candle với timestamp 1704067200, open 100, high 105, low 98, close 103, volume 1000; in đối tượng và close. Import từ module khác không tự in demo. Gửi Nam file, lệnh và output. Type hints chưa phải validation; phần kiểm tra dữ liệu làm ở bước sau.
+- **Nam, bước đầu:** Học import/list/for/f-string; dùng đúng class của Hưng. Chạy `python -m src.main_cli` thấy 3 nến và số lượng 3; không tạo class Candle thứ hai.
+- **Hưng, loader cơ bản:** Dùng [CSV chung 12 nến](tests/fixtures/candles_valid.csv) và [hướng dẫn](tests/fixtures/README.md), không tự tìm dữ liệu ngoài. Loader chuyển timestamp thành int, năm trường còn lại thành float và trả 12 Candle. Đây chưa phải loader hoàn thiện cho mọi input lỗi.
+- **Nam, tích hợp:** Dùng loader thật, in dữ liệu đọc từ fixture; không viết loader thứ hai. Đối chiếu số nến và các trường với file CSV.
+- **Trước khi đóng M1:** Hưng thêm tests/validation cho numeric hữu hạn, OHLC hợp lệ, volume không âm, empty/single-row, malformed, duplicate/out-of-order và lỗi theo dòng. Nam thêm CLI arguments, stats bằng scan, empty/error handling, exit status khác 0 khi lỗi và tests CLI. Hai người kiểm tra chéo, ghi lệnh thực chạy vào README. Fixture có min low 98, max high 113, tổng volume 13600 để đối chiếu.
+
+Không giao người kiểm thử chuyên trách ở bước đầu, nhưng Hưng/Nam vẫn phải kiểm tra code mình; các acceptance criteria M1 ở mục 2 vẫn áp dụng trước nghiệm thu toàn mốc.
 
 ### Nhánh và trình tự phối hợp
 
-1. **Hưng + Nam** chốt API/error semantics theo interfaces, mời Phát/Dũng đọc; mọi thay đổi contract phải trao đổi.
-2. **Hưng:** `feature/m1-csv-loader` cho M1-01/02; **Nam:** `feature/m1-cli-summary` cho M1-03/05. Commit nhỏ; tích hợp loader qua main sau PR review, không sao chép module giữa hai nhánh.
-3. **Phát:** `feature/m1-summary-oracle` cho M1-04 sau khi fixture ổn định. Nếu chỉ review code thì không cần nhánh riêng.
-4. **Dũng:** `docs/m1-demo-check` cho M1-06, ghi nhận trên code/commit thực đã chạy; sửa implementation bằng PR riêng nếu nhóm thống nhất.
-5. **Nam/Lead** đối chiếu mọi acceptance criteria M1, review và merge; PR của Nam cần một thành viên khác review. Không coi hoàn thành một task là hoàn thành cả M1.
+1. **Hưng + Nam** chốt API theo interfaces; mọi thay đổi contract phải trao đổi.
+2. **Hưng:** `feature/m1-csv-loader`; **Nam:** `feature/m1-cli-summary`. Commit nhỏ, bảo toàn code cũ; tích hợp qua PR review, không sao chép module giữa hai nhánh.
+3. **Phát và Dũng:** chưa có task implementation/kiểm thử riêng trong lượt đầu M1. Phát ôn list/min/max trước Segment Tree; Dũng ôn class/tọa độ trước QPainter. Phần học này không chặn Hưng/Nam.
+4. **Nam/Lead** đối chiếu acceptance criteria và review trước merge; nhờ thành viên khác review PR của Nam khi sẵn sàng. Không coi hoàn thành một task là hoàn thành cả M1.
 
 Không gán hạn ngày tùy ý khi chưa biết deadline môn học. Mỗi check-in ghi task đang làm, PR/commit, checks thực tế, blocker và bước tiếp theo. Sau M1, Dũng chủ trì chart M2; Phát chuẩn bị cây M3, Hưng tiếp tục custom buffer M3.
 

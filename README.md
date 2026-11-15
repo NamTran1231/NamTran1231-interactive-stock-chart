@@ -51,7 +51,6 @@ Các file rỗng trong `src/`, `tests/` được giữ để bảo toàn scaffol
 
 ## Tài liệu nhóm
 
-- [Bắt đầu ở đây: guide cho thành viên và AI agent](docs/TEAM_GUIDE.md)
 - [Lộ trình](ROADMAP.md)
 - [Báo cáo cho cả nhóm](docs/team_plan_report.md)
 - [So sánh nghiên cứu](docs/research_comparison.md)
