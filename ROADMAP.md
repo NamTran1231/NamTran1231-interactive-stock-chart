@@ -36,7 +36,7 @@ Luồng chính **M0 → M1 → M2 → M3 → M4 → M5**. Sau khi chốt contrac
 
 Chủ dự án đã chấp thuận phân công mới. Mỗi người tự test module mình, review chéo và đọc [interfaces](docs/interfaces.md) trước triển khai. Role 4 điều phối, không gánh toàn bộ test.
 
-### Thành viên 1 — Dữ liệu, CSV, Ring Buffer
+### Thành viên 1 — Hưng — Dữ liệu, CSV, Ring Buffer
 
 - **Deliverables:** Candle độc lập Qt, loader validate, fixture synthetic, buffer mảng vòng tự quản lý index/size; full history riêng.
 - **Học trước:** `Python dataclass CSV validation`, `circular buffer array head tail modulo`.
@@ -44,7 +44,7 @@ Chủ dự án đã chấp thuận phân công mới. Mỗi người tự test m
 - **File/API dự kiến:** `src/core/candle.py` — `Candle`; `src/core/csv_loader.py` — `load_candles(path: str) -> list[Candle]`; `src/core/ring_buffer.py` — `RingBuffer(capacity: int)`, `push(candle)`, `get_all()`, `is_full()`.
 - **Done:** CSV đạt contracts; invalid capacity bị từ chối; wraparound đúng, push O(1), snapshot O(K). Cải tiến prototype hiện có; deque wrapper chưa phải DSA from scratch.
 
-### Thành viên 2 — Rendering, tọa độ, interactions
+### Thành viên 2 — Dũng — Rendering, tọa độ, interactions
 
 - **Deliverables:** QPainter candles/axes, viewport/clipping, pan/zoom/hover; nối query tree ở M3.
 - **Học trước:** `PyQt6 QPainter QWidget paintEvent`, `affine transform world screen coordinates`, `cursor anchored zoom`.
@@ -52,7 +52,7 @@ Chủ dự án đã chấp thuận phân công mới. Mỗi người tự test m
 - **File/API dự kiến:** `src/core/coordinate_math.py` — `world_to_screen(...)`, `screen_to_world(...)`; `src/ui/chart_canvas.py` — `ChartCanvasWidget`, `paintEvent(self, event)`.
 - **Done:** Đạt M2; không vẽ toàn bộ history ngoài viewport; hover ngoài data không trả nến tùy ý. Sliding Window không còn nhiệm vụ bắt buộc chính.
 
-### Thành viên 3 — Segment Tree và oracle
+### Thành viên 3 — Phát — Segment Tree và oracle
 
 - **Deliverables:** Custom tree min low/max high/sum volume; scan baseline; tests interval/update/capacity.
 - **Học trước:** `segment tree range minimum maximum sum point update`, `half open interval identity element`.
@@ -60,7 +60,7 @@ Chủ dự án đã chấp thuận phân công mới. Mỗi người tự test m
 - **File/API dự kiến:** `src/algorithms/segment_tree.py` — `SegmentTree`, `query(left, right)`, `update(index, candle)`, `append(candle)`; `src/algorithms/range_scan.py` — `scan_range(...)`; dùng `RangeStats` trong interfaces.
 - **Done:** Đạt M3, đủ ba đại lượng; empty/invalid intervals rõ ràng; không gọi append có rebuild là worst-case O(log N).
 
-### Thành viên 4 — Integration, replay, benchmark
+### Thành viên 4 — Nam (Lead) — Integration, replay, benchmark
 
 - **Deliverables:** CLI/app entry points, GUI shell, replay controller, end-to-end checks, benchmark harness, tài liệu/review.
 - **Học trước:** `Python argparse pytest tutorial`, `PyQt6 QTimer tutorial`, `Python perf_counter tracemalloc benchmark`.
@@ -70,7 +70,43 @@ Chủ dự án đã chấp thuận phân công mới. Mỗi người tự test m
 
 Các file/API mới trên đây là kế hoạch, chưa phải implementation đã tạo.
 
-## 4. Check-in và bước tiếp theo
+## 4. Phân công M1 — task giao cho từng thành viên
+
+**Mục tiêu M1:** CSV synthetic nhỏ → Candle hợp lệ → CLI hiển thị tóm tắt và có hướng dẫn chạy lại. **Hiện tại chỉ Hưng và Nam triển khai chính.** Phát và Dũng chưa được giao task kiểm thử riêng ở M1; có thể ôn kiến thức cho Segment Tree và GUI ở mốc sau.
+
+Các task dưới đây được giao theo tên trong roadmap; chưa phải GitHub Issues và chưa gán tài khoản GitHub. Nhánh là tên đề xuất, chưa xác nhận đã tồn tại. Mỗi người đọc `docs/interfaces.md` và `CONTRIBUTING.md` trước khi làm.
+
+| Task | Người phụ trách | Nhiệm vụ và file/đầu ra | Phụ thuộc | Trạng thái |
+| --- | --- | --- | --- | --- |
+| M1-01A — Làm ngay | **Hưng** | Tạo `src/core/candle.py`: `@dataclass(frozen=True)` với timestamp: int và open/high/low/close/volume: float. Thêm demo trong khối `if __name__ == "__main__"` | Đọc Candle contract | [ ] Chưa nghiệm thu |
+| M1-03A — Làm ngay khi import được Candle | **Nam** | Tạo `src/main_cli.py`; import Candle của Hưng, tạo 3 nến mẫu, in mỗi nến một dòng và số nến bằng `len()` | M1-01A | [ ] Chưa nghiệm thu |
+| M1-02A — Giao sau lượt đầu | **Hưng** | Viết `load_candles(path) -> list[Candle]` trong `src/core/csv_loader.py`, đọc fixture chung bằng thư viện `csv` | M1-01A chạy được | [ ] Chưa nghiệm thu |
+| M1-03B — Giao sau lượt đầu | **Nam** | Thay danh sách viết sẵn bằng kết quả loader; in đủ 12 nến mẫu | M1-02A | [ ] Chưa nghiệm thu |
+| M1-01B / M1-02B — Hoàn thiện dữ liệu | **Hưng** | Thêm validation theo interfaces, lỗi có số dòng; viết tests model/CSV từng trường hợp | Loader cơ bản chạy được | [ ] Chưa nghiệm thu |
+| M1-03C / M1-05 — Hoàn thiện CLI | **Nam** | Nhận đường dẫn CSV; thống kê min low/max high/sum volume; xử lý lỗi/empty; tests CLI và README hướng dẫn chạy | Data validation ổn định | [ ] Chưa nghiệm thu |
+
+### Cách giao từng bước và nghiệm thu
+
+**Chỉ giao lượt đầu M1-01A và M1-03A ngay bây giờ.** Chạy được rồi mới giao bước tiếp; không yêu cầu người mới giải quyết toàn bộ bảng một lần.
+
+- **Hưng, bước đầu:** Học `Python dataclass cơ bản`, khai báo đủ sáu trường. Từ repo root chạy `python -m src.core.candle` (hoặc `python3`). Demo tạo một Candle với timestamp 1704067200, open 100, high 105, low 98, close 103, volume 1000; in đối tượng và close. Import từ module khác không tự in demo. Gửi Nam file, lệnh và output. Type hints chưa phải validation; phần kiểm tra dữ liệu làm ở bước sau.
+- **Nam, bước đầu:** Học import/list/for/f-string; dùng đúng class của Hưng. Chạy `python -m src.main_cli` thấy 3 nến và số lượng 3; không tạo class Candle thứ hai.
+- **Hưng, loader cơ bản:** Dùng [CSV chung 12 nến](tests/fixtures/candles_valid.csv) và [hướng dẫn](tests/fixtures/README.md), không tự tìm dữ liệu ngoài. Loader chuyển timestamp thành int, năm trường còn lại thành float và trả 12 Candle. Đây chưa phải loader hoàn thiện cho mọi input lỗi.
+- **Nam, tích hợp:** Dùng loader thật, in dữ liệu đọc từ fixture; không viết loader thứ hai. Đối chiếu số nến và các trường với file CSV.
+- **Trước khi đóng M1:** Hưng thêm tests/validation cho numeric hữu hạn, OHLC hợp lệ, volume không âm, empty/single-row, malformed, duplicate/out-of-order và lỗi theo dòng. Nam thêm CLI arguments, stats bằng scan, empty/error handling, exit status khác 0 khi lỗi và tests CLI. Hai người kiểm tra chéo, ghi lệnh thực chạy vào README. Fixture có min low 98, max high 113, tổng volume 13600 để đối chiếu.
+
+Không giao người kiểm thử chuyên trách ở bước đầu, nhưng Hưng/Nam vẫn phải kiểm tra code mình; các acceptance criteria M1 ở mục 2 vẫn áp dụng trước nghiệm thu toàn mốc.
+
+### Nhánh và trình tự phối hợp
+
+1. **Hưng + Nam** chốt API theo interfaces; mọi thay đổi contract phải trao đổi.
+2. **Hưng:** `feature/m1-csv-loader`; **Nam:** `feature/m1-cli-summary`. Commit nhỏ, bảo toàn code cũ; tích hợp qua PR review, không sao chép module giữa hai nhánh.
+3. **Phát và Dũng:** chưa có task implementation/kiểm thử riêng trong lượt đầu M1. Phát ôn list/min/max trước Segment Tree; Dũng ôn class/tọa độ trước QPainter. Phần học này không chặn Hưng/Nam.
+4. **Nam/Lead** đối chiếu acceptance criteria và review trước merge; nhờ thành viên khác review PR của Nam khi sẵn sàng. Không coi hoàn thành một task là hoàn thành cả M1.
+
+Không gán hạn ngày tùy ý khi chưa biết deadline môn học. Mỗi check-in ghi task đang làm, PR/commit, checks thực tế, blocker và bước tiếp theo. Sau M1, Dũng chủ trì chart M2; Phát chuẩn bị cây M3, Hưng tiếp tục custom buffer M3.
+
+## 5. Check-in và bước tiếp theo
 
 Mỗi check-in: demo phần chạy được, tests đã chạy, blocker, thay đổi contract và PR tiếp theo. Tick khi đạt nghiệm thu, không dựa vào số file/commit.
 
