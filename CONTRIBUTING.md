@@ -13,12 +13,12 @@ To maintain codebase stability, ensure clean version control history, and cleanl
 
 The M0–M6 plan in `ROADMAP.md` replaces the three-stage naming scheme:
 
-| Developer / Member | Ownership | Example future branch |
+| Developer | Ownership | Example future branch |
 | --- | --- | --- |
-| 1 — Hưng | Candle model, CSV, custom array Ring Buffer | `feature/m1-csv-loader` |
-| 2 — Dũng | QPainter rendering, coordinates, interactions | `feature/m2-chart-canvas` |
-| 3 — Phát | Custom Segment Tree, scan oracle, query tests | `feature/m3-segment-tree` |
-| 4 — Nam (Project Lead) | CLI/app integration, replay, benchmarks, docs | `feature/m1-cli-summary` |
+| 1 | Candle model, CSV, custom array Ring Buffer | `feature/m1-csv-loader` |
+| 2 | QPainter rendering, coordinates, interactions | `feature/m2-chart-canvas` |
+| 3 | Custom Segment Tree, scan oracle, query tests | `feature/m3-segment-tree` |
+| 4 | CLI/app integration, replay, benchmarks, docs | `feature/m1-cli-summary` |
 
 Example branches are not claims that they already exist. Keep existing `feature/stage1-*`, `feature/ring-buffer`, and `test` history. Do not delete or rewrite teammate work. Review the Ring Buffer prototype and move useful changes through focused PRs; do not blindly merge its PyQt5 simulator or generated `.pyc` files. Agree with the contributor before migrating work.
 
@@ -76,7 +76,7 @@ Format:
    * Provide a brief bulleted summary of changes and verify that all unit tests pass.
 
 3. **Review & Merge:**
-    * The Project Lead (Nam, Developer 4) reviews the PR for merge conflicts and test coverage before merging into `main`.
+   * The Project Lead (Developer 4) reviews the PR for merge conflicts and test coverage before merging into `main`.
 
 4. **Synchronize Local Branches:**
    * After a merge, pull the latest changes from `main` into your local feature branch:

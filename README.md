@@ -49,6 +49,15 @@ Stack dự kiến: Python 3.10+, PyQt6, pytest. Hiện `main` chưa có `require
 
 Các file rỗng trong `src/`, `tests/` được giữ để bảo toàn scaffold; tên file không chứng minh tính năng tồn tại. Dataset AAPL/BTC hiện ở nhánh prototype, chưa nằm trong `main`.
 
+## Thành viên và vai trò
+
+| Vai trò | Thành viên | Phụ trách |
+| --- | --- | --- |
+| Thành viên 1 | Hưng | Candle model, CSV ingestion, Ring Buffer |
+| Thành viên 2 | Dũng | GUI, tọa độ, pan/zoom/hover |
+| Thành viên 3 | Phát | Segment Tree, range queries, scan đối chứng |
+| Thành viên 4 / Lead | Nam | CLI, tích hợp, replay, benchmark, review/merge PR |
+
 ## Tài liệu nhóm
 
 - [Bắt đầu ở đây: guide cho thành viên và AI agent](docs/TEAM_GUIDE.md)

@@ -36,18 +36,7 @@ Mở [repository](https://github.com/NamTran1231/NamTran1231-interactive-stock-c
 
 ## 3. Checklist M1 cho từng người
 
-Phân công theo tên đã được Nam xác nhận:
-
-| Vai trò | Thành viên | Trách nhiệm chính |
-| --- | --- | --- |
-| 1 | Hưng | Candle, CSV ingestion, custom Ring Buffer |
-| 2 | Dũng | QPainter chart, tọa độ, pan/zoom/hover |
-| 3 | Phát | Custom Segment Tree, range queries, scan oracle |
-| 4 / Lead | Nam | CLI, integration, replay, benchmark, điều phối và review/merge PR |
-
-Hưng và Phát tiếp tục chuyên môn cũ. Dũng chuyển từ Sliding Window sang GUI; Sliding Window là tùy chọn nếu rubric không bắt buộc. Ở M1, Hưng/Nam triển khai chính, Dũng/Phát review và chuẩn bị phần tiếp theo.
-
-### Thành viên 1 — Hưng — Candle, CSV và dữ liệu mẫu
+### Thành viên 1 — Candle, CSV và dữ liệu mẫu
 
 **Mục tiêu hiện tại:** làm nền tảng dữ liệu cho CLI và chart.
 
@@ -61,7 +50,7 @@ File dự kiến: `src/core/candle.py`, `src/core/csv_loader.py`, `tests/test_cs
 
 Nhánh đề xuất: `feature/m1-csv-loader`. **Custom Ring Buffer được nghiệm thu ở M3**, không cần hoàn thành trong task M1 này. Prototype cũ được giữ và cải tiến ở task riêng.
 
-### Thành viên 4 — Nam (Lead) — CLI và tích hợp M1
+### Thành viên 4 — CLI và tích hợp M1
 
 **Mục tiêu hiện tại:** người khác chạy được demo từ CSV qua terminal.
 
@@ -75,7 +64,7 @@ File dự kiến: `src/main_cli.py`, test CLI và hướng dẫn trong `README.m
 
 Nhánh đề xuất: `feature/m1-cli-summary`. Thành viên 4 điều phối test chung; từng người vẫn tự test module mình.
 
-### Thành viên 2 — Dũng — Chuẩn bị chart M2
+### Thành viên 2 — Chuẩn bị chart M2
 
 **Mục tiêu hiện tại:** hiểu dữ liệu sẽ vẽ và chuẩn bị kỹ năng, chưa cần hoàn thiện GUI trong M1.
 
@@ -86,7 +75,7 @@ Nhánh đề xuất: `feature/m1-cli-summary`. Thành viên 4 điều phối tes
 
 Nhánh implementation ví dụ khi bắt đầu M2: `feature/m2-chart-canvas`. Role chính đã chuyển từ Sliding Window sang rendering/interactions. Không tự đổi contract vì bài thử cần dữ liệu khác.
 
-### Thành viên 3 — Phát — Chuẩn bị query M3
+### Thành viên 3 — Chuẩn bị query M3
 
 **Mục tiêu hiện tại:** thống nhất ý nghĩa truy vấn và chuẩn bị oracle.
 
@@ -133,7 +122,7 @@ Tài liệu `Stock_Chart_Agent_Handoff.md` là brief nghiên cứu ban đầu, c
 ### Prompt dùng chung — điền trước khi gửi
 
 ```text
-Tôi là [Hưng / Dũng / Phát / Nam], thành viên [1/2/3/4] của dự án Stock Chart.
+Tôi là thành viên [1/2/3/4] của dự án Stock Chart.
 Milestone hiện tại: M1. Task được giao: [một đầu việc cụ thể].
 Nhánh dự kiến/hiện tại: [tên nhánh].
 
@@ -160,10 +149,10 @@ nếu chưa chạy; không đánh dấu M1 xong chỉ vì hoàn thành một mod
 
 | Người | Task nên giao agent lúc này |
 | --- | --- |
-| 1 — Hưng | “Xây Candle và CSV loader theo interfaces, fixture synthetic và input tests; chưa làm Ring Buffer/replay.” |
-| 4 — Nam | “Xây CLI summary dùng API loader đã thống nhất, test CLI và hướng dẫn chạy; phối hợp dependency với PR thành viên 1.” |
-| 2 — Dũng | “Đọc Candle contract và giải thích kế hoạch QPainter/world-screen cho M2; chỉ phân tích, chưa sửa implementation.” |
-| 3 — Phát | “Review RangeStats và half-open ranges; đề xuất scan oracle và test cases; chỉ phân tích, chưa sửa implementation.” |
+| 1 | “Xây Candle và CSV loader theo interfaces, fixture synthetic và input tests; chưa làm Ring Buffer/replay.” |
+| 4 | “Xây CLI summary dùng API loader đã thống nhất, test CLI và hướng dẫn chạy; phối hợp dependency với PR thành viên 1.” |
+| 2 | “Đọc Candle contract và giải thích kế hoạch QPainter/world-screen cho M2; chỉ phân tích, chưa sửa implementation.” |
+| 3 | “Review RangeStats và half-open ranges; đề xuất scan oracle và test cases; chỉ phân tích, chưa sửa implementation.” |
 
 Nếu lead giao task chuẩn bị implementation riêng cho thành viên 2/3, sửa rõ phạm vi prompt và mở nhánh task tương ứng. Không dùng prompt M1 để tự bắt đầu M2–M6.
 

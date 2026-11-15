@@ -42,14 +42,12 @@ Test đi cùng mọi mốc, không đợi M5. Nghiệm thu chi tiết ở [ROADM
 
 ## 4. Việc của từng người
 
-**Cập nhật 15/11/2026:** Nam đã xác nhận tên theo vai trò: Hưng (1), Dũng (2), Phát (3), Nam (4/Lead).
-
 | Người | Trách nhiệm mới | Bước gần nhất |
 | --- | --- | --- |
-| 1 — Hưng | Candle/CSV/Ring Buffer | M1 model/loader/fixture; sau đó cải tiến deque thành mảng vòng |
-| 2 — Dũng | Rendering/coordinates/interactions | Học transform/QPainter, chart nhỏ theo Candle contract |
-| 3 — Phát | Segment Tree/scan oracle | Chốt RangeStats, query/update tests; tích hợp M3 |
-| 4 — Nam (Lead) | CLI/integration/replay/benchmark/docs | CLI M1, end-to-end checks, điều phối review |
+| 1 | Candle/CSV/Ring Buffer | M1 model/loader/fixture; sau đó cải tiến deque thành mảng vòng |
+| 2 | Rendering/coordinates/interactions | Học transform/QPainter, chart nhỏ theo Candle contract |
+| 3 | Segment Tree/scan oracle | Chốt RangeStats, query/update tests; tích hợp M3 |
+| 4 | CLI/integration/replay/benchmark/docs | CLI M1, end-to-end checks, điều phối review |
 
 Role 2 thay đổi nhiều nhất từ Sliding Window sang GUI. Mỗi người tự test module và review chéo, không giao mọi test cho role 4. Deadline cụ thể lập sau khi có hạn nộp.
 
