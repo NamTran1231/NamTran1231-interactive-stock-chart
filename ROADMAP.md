@@ -36,7 +36,7 @@ Luồng chính **M0 → M1 → M2 → M3 → M4 → M5**. Sau khi chốt contrac
 
 Chủ dự án đã chấp thuận phân công mới. Mỗi người tự test module mình, review chéo và đọc [interfaces](docs/interfaces.md) trước triển khai. Role 4 điều phối, không gánh toàn bộ test.
 
-### Thành viên 1 — Dữ liệu, CSV, Ring Buffer
+### Thành viên 1 — Hưng — Dữ liệu, CSV, Ring Buffer
 
 - **Deliverables:** Candle độc lập Qt, loader validate, fixture synthetic, buffer mảng vòng tự quản lý index/size; full history riêng.
 - **Học trước:** `Python dataclass CSV validation`, `circular buffer array head tail modulo`.
@@ -44,7 +44,7 @@ Chủ dự án đã chấp thuận phân công mới. Mỗi người tự test m
 - **File/API dự kiến:** `src/core/candle.py` — `Candle`; `src/core/csv_loader.py` — `load_candles(path: str) -> list[Candle]`; `src/core/ring_buffer.py` — `RingBuffer(capacity: int)`, `push(candle)`, `get_all()`, `is_full()`.
 - **Done:** CSV đạt contracts; invalid capacity bị từ chối; wraparound đúng, push O(1), snapshot O(K). Cải tiến prototype hiện có; deque wrapper chưa phải DSA from scratch.
 
-### Thành viên 2 — Rendering, tọa độ, interactions
+### Thành viên 2 — Dũng — Rendering, tọa độ, interactions
 
 - **Deliverables:** QPainter candles/axes, viewport/clipping, pan/zoom/hover; nối query tree ở M3.
 - **Học trước:** `PyQt6 QPainter QWidget paintEvent`, `affine transform world screen coordinates`, `cursor anchored zoom`.
@@ -52,7 +52,7 @@ Chủ dự án đã chấp thuận phân công mới. Mỗi người tự test m
 - **File/API dự kiến:** `src/core/coordinate_math.py` — `world_to_screen(...)`, `screen_to_world(...)`; `src/ui/chart_canvas.py` — `ChartCanvasWidget`, `paintEvent(self, event)`.
 - **Done:** Đạt M2; không vẽ toàn bộ history ngoài viewport; hover ngoài data không trả nến tùy ý. Sliding Window không còn nhiệm vụ bắt buộc chính.
 
-### Thành viên 3 — Segment Tree và oracle
+### Thành viên 3 — Phát — Segment Tree và oracle
 
 - **Deliverables:** Custom tree min low/max high/sum volume; scan baseline; tests interval/update/capacity.
 - **Học trước:** `segment tree range minimum maximum sum point update`, `half open interval identity element`.
@@ -60,7 +60,7 @@ Chủ dự án đã chấp thuận phân công mới. Mỗi người tự test m
 - **File/API dự kiến:** `src/algorithms/segment_tree.py` — `SegmentTree`, `query(left, right)`, `update(index, candle)`, `append(candle)`; `src/algorithms/range_scan.py` — `scan_range(...)`; dùng `RangeStats` trong interfaces.
 - **Done:** Đạt M3, đủ ba đại lượng; empty/invalid intervals rõ ràng; không gọi append có rebuild là worst-case O(log N).
 
-### Thành viên 4 — Integration, replay, benchmark
+### Thành viên 4 — Nam (Lead) — Integration, replay, benchmark
 
 - **Deliverables:** CLI/app entry points, GUI shell, replay controller, end-to-end checks, benchmark harness, tài liệu/review.
 - **Học trước:** `Python argparse pytest tutorial`, `PyQt6 QTimer tutorial`, `Python perf_counter tracemalloc benchmark`.
