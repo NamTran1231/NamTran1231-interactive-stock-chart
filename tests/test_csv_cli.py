@@ -1,4 +1,4 @@
-"""Kiểm tra loader và luồng CLI; dùng được với unittest hoặc pytest."""
+"""Check the loader and CLI workflows with unittest or pytest."""
 
 import contextlib
 import io
@@ -76,14 +76,14 @@ class CsvCliTests(unittest.TestCase):
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
             print_candle_table([])
-        self.assertEqual(output.getvalue().strip(), "Không có dữ liệu nến.")
+        self.assertEqual(output.getvalue().strip(), "No candle data.")
 
     def test_cli_demo_and_csv(self):
         for args, count in [((), 3), (("tests/fixtures/candles_valid.csv",), 12)]:
             with self.subTest(args=args):
                 result = self.run_cli(*args)
                 self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertIn(f"Số nến: {count}", result.stdout)
+                self.assertIn(f"Candle count: {count}", result.stdout)
                 self.assertIn("Timestamp", result.stdout)
 
     def test_cli_missing_and_invalid_file(self):
@@ -94,7 +94,7 @@ class CsvCliTests(unittest.TestCase):
                     path.write_text(contents, encoding="utf-8")
                 result = self.run_cli(str(path))
                 self.assertEqual(result.returncode, 1)
-                self.assertIn("Lỗi:", result.stderr)
+                self.assertIn("Error:", result.stderr)
                 self.assertNotIn("Traceback", result.stderr)
 
     def test_model_errors_keep_csv_line_and_reason(self):
@@ -110,10 +110,10 @@ class CsvCliTests(unittest.TestCase):
     def test_cli_summary_uses_entire_dataset_with_limited_preview(self):
         result = self.run_cli("tests/fixtures/candles_valid.csv", "--limit", "2")
         self.assertEqual(result.returncode, 0, result.stderr)
-        for expected in ["Số nến: 12", "Hiển thị 2/12", "Min low: 98.00",
-                         "Max high: 113.00", "Tổng volume: 13600.00",
-                         "Timestamp đầu (UTC Unix seconds): 1704067200",
-                         "Timestamp cuối (UTC Unix seconds): 1704067860"]:
+        for expected in ["Candle count: 12", "Showing 2/12", "Min low: 98.00",
+                         "Max high: 113.00", "Total volume: 13600.00",
+                         "First timestamp (UTC Unix seconds): 1704067200",
+                         "Last timestamp (UTC Unix seconds): 1704067860"]:
             self.assertIn(expected, result.stdout)
         self.assertEqual(len([line for line in result.stdout.splitlines()
                               if line.strip().startswith("170406")]), 2)
@@ -136,13 +136,13 @@ class CsvCliTests(unittest.TestCase):
                 path.write_text(text, encoding="utf-8")
                 result = self.run_cli(str(path))
                 self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertIn("Không có dữ liệu nến.", result.stdout)
+                self.assertIn("No candle data.", result.stdout)
                 self.assertNotIn("Min low:", result.stdout)
             path.write_text(HEADER + ROW, encoding="utf-8")
             result = self.run_cli(str(path))
             self.assertEqual(result.returncode, 0, result.stderr)
-            for expected in ["Số nến: 1", "Min low: 98.00", "Max high: 105.00",
-                             "Tổng volume: 1000.00"]:
+            for expected in ["Candle count: 1", "Min low: 98.00", "Max high: 105.00",
+                             "Total volume: 1000.00"]:
                 self.assertIn(expected, result.stdout)
 
     def test_cli_import_has_no_demo_output(self):
@@ -160,7 +160,7 @@ class CsvCliTests(unittest.TestCase):
                 path.write_bytes(content)
                 result = self.run_cli(str(path))
                 self.assertEqual(result.returncode, 1)
-                self.assertIn("Lỗi:", result.stderr)
+                self.assertIn("Error:", result.stderr)
                 self.assertNotIn("Traceback", result.stderr)
 
 

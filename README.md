@@ -1,58 +1,58 @@
-# Interactive Stock Chart Engine — Dự án DSA
+# Interactive Stock Chart Engine — DSA Project
 
-Dự án đại học của nhóm 4 thành viên: xây biểu đồ nến OHLCV bằng **Python + PyQt6/QPainter**, sử dụng cấu trúc dữ liệu tự cài đặt và đánh giá bằng kiểm thử, lập luận và phép đo tái lập.
+A university project for four students: build an OHLCV candlestick application with **Python + PyQt6/QPainter**, custom data structures, correctness tests, complexity arguments, and reproducible measurements.
 
-## Trạng thái hiện tại
+## Current status
 
-**Cập nhật 18/11/2026:** PR #3/#4 đã merge Candle cơ bản, CSV loader và CLI vào main. Bản hoàn thiện M1 này bổ sung validation tại model, thống kê CLI và kiểm thử; chờ review/merge qua PR riêng.
+**Updated November 18, 2026:** PRs #3/#4 introduced the Candle model, CSV loader, and CLI. PR #5 completed model validation, CLI statistics, and M1 verification. This follow-up translates the M1 interface and documentation into English.
 
-- Đã có: Candle bất biến và validation, CSV loader báo lỗi theo dòng, fixture synthetic, CLI in bảng và thống kê toàn bộ dữ liệu.
-- Đã chạy: 19 tests bằng unittest, gồm model/CSV và CLI subprocess. Xem [báo cáo M1](docs/m1_completion.md).
-- Chưa có: GUI, custom DSA tích hợp, replay hoặc benchmark. Các file scaffold tương ứng không phải tính năng đã hoạt động.
-- Prototype Ring Buffer trên nhánh cũ vẫn dùng deque/PyQt5, cần điều chỉnh ở M3.
-- CI workflow vẫn rỗng. Chưa xác nhận chạy lại trên máy riêng của Hưng/Nam; không gọi kiểm tra trên máy agent là xác nhận của thành viên.
+- Implemented: immutable validated candles, CSV loading with row-specific errors, a synthetic fixture, terminal tables, and full-dataset statistics.
+- Verified: 19 unittest tests covering the model, CSV loader, and CLI subprocesses. See the [M1 completion report](docs/m1_completion.md).
+- M2 foundation: an empty PyQt6 window is implemented; the chart itself, integrated custom DSA, replay, and benchmarking are still planned. Placeholder files do not represent working features.
+- The older Ring Buffer prototype uses deque/PyQt5 and needs revision for M3.
+- The CI workflow is still empty. An independent run on Hưng's or Nam's machine has not been confirmed.
 
-## Mục tiêu bản phát hành đầu
+## First-release scope
 
-- Một mã và một timeframe intraday; CSV chuẩn hóa thành UTC Unix seconds.
-- Candle model độc lập Qt, CSV validation và CLI summary.
-- Custom candles, axes, pan/zoom/hover và visible-range clipping.
-- **Custom Segment Tree:** min low, max high, tổng volume trên khoảng `[left, right)`.
-- **Custom Ring Buffer bằng mảng vòng:** lưu dữ liệu gần đây có giới hạn; full history lưu riêng.
-- Offline replay có play/pause, restart và speed; không gọi simulator là nguồn giá thị trường thật.
-- Test tính đúng và benchmark có baseline.
+- One instrument and one intraday input timeframe; timestamps are UTC Unix seconds.
+- A Qt-independent Candle model, validated CSV input, and a CLI summary.
+- Custom candlesticks, axes, pan/zoom/hover, and visible-range clipping.
+- A **custom Segment Tree** for minimum low, maximum high, and total volume over `[left, right)`.
+- A **custom circular-array Ring Buffer** for bounded recent retention, separate from full history.
+- Offline replay with play/pause, restart, and speed control. Simulation is not a live market feed.
+- Correctness tests and reproducible comparisons against baselines.
 
-Khi nến quá dày, gom OHLCV: open đầu, max high, min low, close cuối, tổng volume. LTTB không thay thế phép gom nến này.
+Dense candle views will use OHLCV aggregation: first open, maximum high, minimum low, last close, and summed volume. LTTB is not a substitute for candle aggregation.
 
-## Lộ trình M0–M6
+## M0–M6 roadmap
 
-| Mốc | Kết quả chính |
+| Milestone | Main deliverable |
 | --- | --- |
-| M0 | Tài liệu và contracts thống nhất |
-| M1 | Candle + CSV loader + CLI nhỏ |
-| M2 | Chart khoảng 100 nến có tương tác |
-| M3 | Custom Ring Buffer/Segment Tree, tích hợp vào tính năng |
-| M4 | Replay và cập nhật tăng dần |
-| M5 | Gom OHLCV, benchmark và báo cáo |
-| M6 | Extension tùy chọn |
+| M0 | Consistent documentation and contracts |
+| M1 | Candle model, CSV loader, and CLI summary |
+| M2 | A small interactive chart with approximately 100 candles |
+| M3 | Custom Ring Buffer/Segment Tree integrated into working features |
+| M4 | Replay and incremental updates |
+| M5 | OHLCV grouping, benchmarks, and analysis |
+| M6 | Optional extensions |
 
-Test đi cùng mỗi mốc. GUI nhỏ thuộc bản đầu, không còn là bonus cuối dự án. Xem [ROADMAP.md](ROADMAP.md) để biết dependencies, phân công và nghiệm thu.
+Test throughout development. A small GUI belongs to the first release rather than being a final bonus. See [ROADMAP.md](ROADMAP.md) for dependencies, owners, and acceptance criteria.
 
-## Ngoài phạm vi bắt buộc
+## Optional work
 
-Nguồn trade thật, tạo nến từ trade, nhiều mã/timeframe, Quadtree, LTTB cho đường close, undo/redo, rolling-window analytics và cache nâng cao. **Nếu rubric bắt buộc cấu trúc nào, nhóm phải đưa lại vào kế hoạch.** Rubric và hạn nộp chưa được cung cấp.
+Real trade feeds, trade-to-candle construction, multiple instruments/timeframes, Quadtree, LTTB for a close-price line, undo/redo, rolling-window analytics, and advanced caching. **Restore any feature the course rubric explicitly requires.** The rubric and submission deadline have not been provided.
 
-## Thiết lập và chạy
+## Setup and usage
 
-M1 dùng Python 3.10+ và thư viện chuẩn; **không cần pip install, PyQt6 hoặc pandas** để chạy CLI/tests này. Cài Python, lấy repository và mở terminal tại thư mục có README.md và src/. Dùng `python3` thay `python` nếu máy yêu cầu.
+M1 requires Python 3.10+ and the standard library. **No pip installation, Qt, or pandas is needed for these CLI commands and tests.** Open a terminal at the repository root containing README.md and src/. Use `python3` instead of `python` if required by your system.
 
-Có thể tạo môi trường riêng (không bắt buộc):
+An optional virtual environment:
 
 ```bash
 python -m venv .venv
 ```
 
-Kích hoạt trên Linux/macOS: `source .venv/bin/activate`; trên Windows PowerShell: `.venv\Scripts\Activate.ps1`. Nếu không kích hoạt được, có thể dùng Python đã cài trực tiếp cho các lệnh dưới.
+Activate with `source .venv/bin/activate` on Linux/macOS or `.venv\Scripts\Activate.ps1` in Windows PowerShell. Alternatively, run the commands with your installed Python directly.
 
 ```bash
 python -m src.main_cli
@@ -61,22 +61,22 @@ python -m src.main_cli tests/fixtures/candles_valid.csv --limit 0
 python -m unittest discover -s tests -v
 ```
 
-Không truyền đường dẫn: dùng 3 nến mẫu. Với fixture: đọc 12 nến, mặc định chỉ in 10 dòng; `--limit 0` in hết, hoặc `--limit 2` chỉ xem 2 dòng. **Thống kê luôn tính trên toàn bộ dữ liệu**, không phải phần xem trước:
+Without a path, the CLI uses three demo candles. The CSV fixture contains 12 synthetic candles; the default preview shows 10 rows. Use `--limit 0` to show all rows or `--limit 2` to show two. **Statistics always use the entire dataset**, regardless of the preview limit:
 
 ```text
-Số nến: 12
-Timestamp đầu (UTC Unix seconds): 1704067200
-Timestamp cuối (UTC Unix seconds): 1704067860
+Candle count: 12
+First timestamp (UTC Unix seconds): 1704067200
+Last timestamp (UTC Unix seconds): 1704067860
 Min low: 98.00
 Max high: 113.00
-Tổng volume: 13600.00
+Total volume: 13600.00
 ```
 
-CSV dùng UTF-8 và header `timestamp,open,high,low,close,volume`; xem [contracts](docs/interfaces.md). File rỗng/chỉ header thông báo không có dữ liệu; một nến vẫn có thống kê. CSV lỗi, file không tồn tại hoặc encoding sai: thông báo qua stderr, exit status 1. Đối số không hợp lệ: argparse báo lỗi, exit status 2. Chạy thành công: status 0. Import module không tự chạy demo.
+CSV input must be UTF-8 with the header `timestamp,open,high,low,close,volume`; see the [contracts](docs/interfaces.md). Empty/header-only files display `No candle data.` A single candle still has a summary. Invalid data, missing files, and encoding errors report to stderr with exit status 1. Invalid arguments return status 2; success returns 0. Imports do not execute demos.
 
-Model từ chối timestamp không phải int, bool/số không hữu hạn ở giá/volume, OHLC sai và volume âm. Giá âm, flat price và volume 0 vẫn được phép. Loader bổ sung validation header/thứ tự và số dòng vào lỗi. Tests dùng unittest, cũng tương thích pytest khi được cài. Workflow `.github/workflows/python-tests.yml` vẫn rỗng, chưa chạy CI. Stack GUI sau M1 vẫn PyQt6.
+The model rejects non-integer timestamps, boolean/non-finite numeric fields, invalid OHLC bounds, and negative volume. Negative prices, flat candles, and zero volume are allowed. The loader adds header/order validation and CSV row numbers. Tests use unittest and can also run under pytest if installed. `.github/workflows/python-tests.yml` remains empty; CI is not active. The planned GUI stack remains PyQt6.
 
-Các file scaffold khác trong `src/`, `tests/` được giữ; tên file không chứng minh tính năng tồn tại. Dataset AAPL/BTC hiện ở nhánh prototype; demo dùng fixture tổng hợp trong `tests/fixtures/`.
+Other scaffold files remain placeholders. The AAPL/BTC datasets are on the prototype branch; M1 uses the shared synthetic fixture in `tests/fixtures/`.
 
 ## M2 desktop setup (English)
 
@@ -91,13 +91,13 @@ Expected: a window titled `Stock Chart — M2`, initially 960 × 600. Closing th
 
 See [Nam's setup and Dũng's first task](docs/m2_setup_and_dung_task.md) for environment setup, the drawing checklist, and handoff instructions. Primary-source findings are recorded in [M2 GUI research](docs/m2_gui_setup_research.md).
 
-## Tài liệu nhóm
+## Team documentation
 
 - [M2 setup and Dũng's first drawing task (English)](docs/m2_setup_and_dung_task.md)
-- [Báo cáo hoàn thiện và cách xác nhận M1](docs/m1_completion.md)
-- [Lộ trình](ROADMAP.md)
-- [Báo cáo cho cả nhóm](docs/team_plan_report.md)
-- [So sánh nghiên cứu](docs/research_comparison.md)
-- [Hợp đồng module](docs/interfaces.md)
-- [Complexity và benchmark](docs/complexity_analysis.md)
-- [Quy trình Git](CONTRIBUTING.md)
+- [M1 completion report and verification](docs/m1_completion.md)
+- [Roadmap and responsibilities](ROADMAP.md)
+- [Team plan revision report](docs/team_plan_report.md)
+- [Research comparison](docs/research_comparison.md)
+- [Module contracts](docs/interfaces.md)
+- [Complexity and benchmarks](docs/complexity_analysis.md)
+- [Git workflow](CONTRIBUTING.md)

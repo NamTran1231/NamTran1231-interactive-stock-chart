@@ -1,4 +1,4 @@
-"""Demo terminal: chạy không đối số để xem ba nến, hoặc truyền đường dẫn CSV."""
+"""Show three demo candles by default, or load candles from a CSV path."""
 
 import argparse
 import math
@@ -9,11 +9,11 @@ from src.core.csv_loader import load_candles
 
 
 def print_candle_table(candles: list[Candle], limit: int = 10) -> None:
-    """In tối đa limit dòng; limit=0 in toàn bộ, không cắt dữ liệu thống kê."""
+    """Print at most limit rows; zero shows all rows without limiting statistics."""
     if limit < 0:
         raise ValueError("limit must be nonnegative")
     if not candles:
-        print("Không có dữ liệu nến.")
+        print("No candle data.")
         return
 
     print(
@@ -28,38 +28,38 @@ def print_candle_table(candles: list[Candle], limit: int = 10) -> None:
             f"{candle.high:>10.2f} {candle.low:>10.2f} "
             f"{candle.close:>10.2f} {candle.volume:>12.2f}"
         )
-    print(f"\nSố nến: {len(candles)}")
+    print(f"\nCandle count: {len(candles)}")
     if visible_count < len(candles):
-        print(f"Hiển thị {visible_count}/{len(candles)} nến; dùng --limit 0 để xem hết.")
+        print(f"Showing {visible_count}/{len(candles)} candles; use --limit 0 to show all.")
 
 
 def print_candle_summary(candles: list[Candle]) -> None:
-    """Thống kê toàn bộ dữ liệu bằng scan; chưa cần Segment Tree ở M1."""
+    """Summarize all candles with scans; M1 does not require a segment tree."""
     if not candles:
         return
-    print(f"Timestamp đầu (UTC Unix seconds): {candles[0].timestamp}")
-    print(f"Timestamp cuối (UTC Unix seconds): {candles[-1].timestamp}")
+    print(f"First timestamp (UTC Unix seconds): {candles[0].timestamp}")
+    print(f"Last timestamp (UTC Unix seconds): {candles[-1].timestamp}")
     print(f"Min low: {min(candle.low for candle in candles):.2f}")
     print(f"Max high: {max(candle.high for candle in candles):.2f}")
-    print(f"Tổng volume: {math.fsum(candle.volume for candle in candles):.2f}")
+    print(f"Total volume: {math.fsum(candle.volume for candle in candles):.2f}")
 
 
 def nonnegative_limit(value: str) -> int:
     try:
         number = int(value)
     except ValueError as error:
-        raise argparse.ArgumentTypeError("limit phải là số nguyên không âm") from error
+        raise argparse.ArgumentTypeError("limit must be a nonnegative integer") from error
     if number < 0:
-        raise argparse.ArgumentTypeError("limit phải là số nguyên không âm")
+        raise argparse.ArgumentTypeError("limit must be a nonnegative integer")
     return number
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="In bảng nến mẫu hoặc CSV OHLCV.")
-    parser.add_argument("csv_path", nargs="?", help="Đường dẫn CSV chuẩn của dự án")
+    parser = argparse.ArgumentParser(description="Display demo candles or an OHLCV CSV.")
+    parser.add_argument("csv_path", nargs="?", help="Path to a CSV in the project's standard format")
     parser.add_argument(
         "--limit", type=nonnegative_limit, default=10,
-        help="Số dòng mẫu hiển thị (mặc định 10; 0 để in hết). Thống kê luôn dùng toàn bộ CSV.",
+        help="Preview rows (default: 10; 0 shows all). Statistics always use the full CSV.",
     )
     args = parser.parse_args()
 
@@ -73,7 +73,7 @@ def main() -> int:
         try:
             candles = load_candles(args.csv_path)
         except (OSError, UnicodeError, ValueError) as error:
-            print(f"Lỗi: {error}", file=sys.stderr)
+            print(f"Error: {error}", file=sys.stderr)
             return 1
 
     print_candle_table(candles, limit=args.limit)

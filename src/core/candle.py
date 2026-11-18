@@ -12,7 +12,7 @@ class Candle:
     volume: float
 
     def __post_init__(self) -> None:
-        """Giữ mọi Candle hợp lệ, kể cả khi không được tạo qua CSV loader."""
+        """Validate every candle, including instances created outside the CSV loader."""
         if type(self.timestamp) is not int:
             raise ValueError("timestamp must be integer Unix seconds")
 
@@ -46,4 +46,4 @@ if __name__ == "__main__":
         volume=1000.0,
     )
     print(candle)
-    print("Giá đóng cửa:", candle.close)
+    print("Close price:", candle.close)
