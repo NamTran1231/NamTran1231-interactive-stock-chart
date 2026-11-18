@@ -78,8 +78,22 @@ Model từ chối timestamp không phải int, bool/số không hữu hạn ở 
 
 Các file scaffold khác trong `src/`, `tests/` được giữ; tên file không chứng minh tính năng tồn tại. Dataset AAPL/BTC hiện ở nhánh prototype; demo dùng fixture tổng hợp trong `tests/fixtures/`.
 
+## M2 desktop setup (English)
+
+The M2 setup adds an **empty window**, not a working candle chart. M1 remains usable without Qt. In an activated virtual environment, run from the repository root:
+
+```bash
+python -m pip install -r requirements-gui.txt
+python -m src.main
+```
+
+Expected: a window titled `Stock Chart — M2`, initially 960 × 600. Closing the window ends the application. Run GUI commands on a graphical desktop; offscreen testing does not confirm on-screen appearance.
+
+See [Nam's setup and Dũng's first task](docs/m2_setup_and_dung_task.md) for environment setup, the drawing checklist, and handoff instructions. Primary-source findings are recorded in [M2 GUI research](docs/m2_gui_setup_research.md).
+
 ## Tài liệu nhóm
 
+- [M2 setup and Dũng's first drawing task (English)](docs/m2_setup_and_dung_task.md)
 - [Báo cáo hoàn thiện và cách xác nhận M1](docs/m1_completion.md)
 - [Lộ trình](ROADMAP.md)
 - [Báo cáo cho cả nhóm](docs/team_plan_report.md)
