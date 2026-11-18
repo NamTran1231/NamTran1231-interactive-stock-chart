@@ -1,0 +1,2 @@
+# Optional M2 desktop dependency. M1 CLI/tests need only the standard library.
+PyQt6>=6.5,<7

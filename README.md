@@ -8,7 +8,7 @@ A university project for four students: build an OHLCV candlestick application w
 
 - Implemented: immutable validated candles, CSV loading with row-specific errors, a synthetic fixture, terminal tables, and full-dataset statistics.
 - Verified: 19 unittest tests covering the model, CSV loader, and CLI subprocesses. See the [M1 completion report](docs/m1_completion.md).
-- Planned: GUI, integrated custom DSA, replay, and benchmarking. Placeholder files do not represent working features.
+- M2 foundation: an empty PyQt6 window is implemented; the chart itself, integrated custom DSA, replay, and benchmarking are still planned. Placeholder files do not represent working features.
 - The older Ring Buffer prototype uses deque/PyQt5 and needs revision for M3.
 - The CI workflow is still empty. An independent run on Hưng's or Nam's machine has not been confirmed.
 
@@ -78,8 +78,22 @@ The model rejects non-integer timestamps, boolean/non-finite numeric fields, inv
 
 Other scaffold files remain placeholders. The AAPL/BTC datasets are on the prototype branch; M1 uses the shared synthetic fixture in `tests/fixtures/`.
 
+## M2 desktop setup (English)
+
+The M2 setup adds an **empty window**, not a working candle chart. M1 remains usable without Qt. In an activated virtual environment, run from the repository root:
+
+```bash
+python -m pip install -r requirements-gui.txt
+python -m src.main
+```
+
+Expected: a window titled `Stock Chart — M2`, initially 960 × 600. Closing the window ends the application. Run GUI commands on a graphical desktop; offscreen testing does not confirm on-screen appearance.
+
+See [Nam's setup and Dũng's first task](docs/m2_setup_and_dung_task.md) for environment setup, the drawing checklist, and handoff instructions. Primary-source findings are recorded in [M2 GUI research](docs/m2_gui_setup_research.md).
+
 ## Team documentation
 
+- [M2 setup and Dũng's first drawing task (English)](docs/m2_setup_and_dung_task.md)
 - [M1 completion report and verification](docs/m1_completion.md)
 - [Roadmap and responsibilities](ROADMAP.md)
 - [Team plan revision report](docs/team_plan_report.md)
