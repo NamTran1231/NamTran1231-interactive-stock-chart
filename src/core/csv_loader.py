@@ -1,7 +1,6 @@
 """Đọc CSV chuẩn của dự án thành danh sách Candle, không phụ thuộc GUI."""
 
 import csv
-import math
 
 from src.core.candle import Candle
 
@@ -40,18 +39,12 @@ def load_candles(path: str) -> list[Candle]:
                         raise ValueError(
                             f"CSV row {line}: {field} must be a number"
                         ) from error
-                    if not math.isfinite(value):
-                        raise ValueError(f"CSV row {line}: {field} must be finite")
                     values[field] = value
 
-                candle = Candle(timestamp=timestamp, **values)
-                if candle.volume < 0:
-                    raise ValueError(f"CSV row {line}: volume must be nonnegative")
-                if not (
-                    candle.low <= min(candle.open, candle.close)
-                    <= max(candle.open, candle.close) <= candle.high
-                ):
-                    raise ValueError(f"CSV row {line}: invalid OHLC bounds")
+                try:
+                    candle = Candle(timestamp=timestamp, **values)
+                except ValueError as error:
+                    raise ValueError(f"CSV row {line}: {error}") from error
                 if candles and timestamp <= candles[-1].timestamp:
                     raise ValueError(
                         f"CSV row {line}: timestamp must be newer than previous row"

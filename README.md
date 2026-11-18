@@ -4,14 +4,13 @@ Dự án đại học của nhóm 4 thành viên: xây biểu đồ nến OHLCV 
 
 ## Trạng thái hiện tại
 
-Đối chiếu remote ngày **14/11/2026**, trước bản sửa tài liệu này:
+**Cập nhật 18/11/2026:** PR #3/#4 đã merge Candle cơ bản, CSV loader và CLI vào main. Bản hoàn thiện M1 này bổ sung validation tại model, thống kê CLI và kiểm thử; chờ review/merge qua PR riêng.
 
-- `main` tại `6a4c245` chỉ có tài liệu và scaffold. Các file Python trong `src/`, `tests/`, workflow CI và báo cáo complexity rỗng.
-- `feature/stage1-ring-buffer` tại `d4f3a5a` có prototype buffer, simulator, dataset và test, chưa merge. Buffer dùng `collections.deque`, simulator dùng PyQt5; cần điều chỉnh theo hợp đồng mới.
-- Ba nhánh Stage 1 còn lại vẫn tại scaffold `6a4c245`.
-- Chưa có ứng dụng hoàn chỉnh hay kết quả benchmark được xác minh trong đợt rà soát này.
-
-**Bổ sung trong PR demo M1:** Candle của Hưng, CSV loader và CLI in bảng đã có implementation; xem lệnh chạy bên dưới. Các chức năng GUI, DSA, replay và benchmark dưới đây vẫn là mục tiêu phát triển, chưa phải hành vi đã chạy.
+- Đã có: Candle bất biến và validation, CSV loader báo lỗi theo dòng, fixture synthetic, CLI in bảng và thống kê toàn bộ dữ liệu.
+- Đã chạy: 19 tests bằng unittest, gồm model/CSV và CLI subprocess. Xem [báo cáo M1](docs/m1_completion.md).
+- Chưa có: GUI, custom DSA tích hợp, replay hoặc benchmark. Các file scaffold tương ứng không phải tính năng đã hoạt động.
+- Prototype Ring Buffer trên nhánh cũ vẫn dùng deque/PyQt5, cần điều chỉnh ở M3.
+- CI workflow vẫn rỗng. Chưa xác nhận chạy lại trên máy riêng của Hưng/Nam; không gọi kiểm tra trên máy agent là xác nhận của thành viên.
 
 ## Mục tiêu bản phát hành đầu
 
@@ -45,22 +44,43 @@ Nguồn trade thật, tạo nến từ trade, nhiều mã/timeframe, Quadtree, L
 
 ## Thiết lập và chạy
 
-Demo M1 trong nhánh/PR này dùng Python 3.10+ và thư viện chuẩn, chưa cần cài Qt. Chạy từ thư mục gốc repository (dùng `python3` thay `python` nếu máy yêu cầu):
+M1 dùng Python 3.10+ và thư viện chuẩn; **không cần pip install, PyQt6 hoặc pandas** để chạy CLI/tests này. Cài Python, lấy repository và mở terminal tại thư mục có README.md và src/. Dùng `python3` thay `python` nếu máy yêu cầu.
+
+Có thể tạo môi trường riêng (không bắt buộc):
+
+```bash
+python -m venv .venv
+```
+
+Kích hoạt trên Linux/macOS: `source .venv/bin/activate`; trên Windows PowerShell: `.venv\Scripts\Activate.ps1`. Nếu không kích hoạt được, có thể dùng Python đã cài trực tiếp cho các lệnh dưới.
 
 ```bash
 python -m src.main_cli
 python -m src.main_cli tests/fixtures/candles_valid.csv
-python -m unittest discover -s tests -p 'test_csv_cli.py' -v
+python -m src.main_cli tests/fixtures/candles_valid.csv --limit 0
+python -m unittest discover -s tests -v
 ```
 
-Lệnh đầu in 3 nến mẫu; lệnh thứ hai đọc và in 12 nến synthetic. CLI nhận đường dẫn tùy chọn, báo lỗi qua stderr và exit status 1; file rỗng thông báo không có dữ liệu. Import module không tự chạy demo.
+Không truyền đường dẫn: dùng 3 nến mẫu. Với fixture: đọc 12 nến, mặc định chỉ in 10 dòng; `--limit 0` in hết, hoặc `--limit 2` chỉ xem 2 dòng. **Thống kê luôn tính trên toàn bộ dữ liệu**, không phải phần xem trước:
 
-Demo này chưa phải M1 hoàn chỉnh: CLI chưa có thống kê tổng hợp, model Candle chưa tự validation khi được tạo trực tiếp. Loader đã kiểm tra dữ liệu CSV theo contract. Stack GUI dự kiến vẫn PyQt6; tests ở đây dùng unittest và cũng có thể chạy bằng pytest sau khi nhóm thiết lập dependency. `.github/workflows/python-tests.yml` vẫn là placeholder rỗng, chưa chạy CI.
+```text
+Số nến: 12
+Timestamp đầu (UTC Unix seconds): 1704067200
+Timestamp cuối (UTC Unix seconds): 1704067860
+Min low: 98.00
+Max high: 113.00
+Tổng volume: 13600.00
+```
+
+CSV dùng UTF-8 và header `timestamp,open,high,low,close,volume`; xem [contracts](docs/interfaces.md). File rỗng/chỉ header thông báo không có dữ liệu; một nến vẫn có thống kê. CSV lỗi, file không tồn tại hoặc encoding sai: thông báo qua stderr, exit status 1. Đối số không hợp lệ: argparse báo lỗi, exit status 2. Chạy thành công: status 0. Import module không tự chạy demo.
+
+Model từ chối timestamp không phải int, bool/số không hữu hạn ở giá/volume, OHLC sai và volume âm. Giá âm, flat price và volume 0 vẫn được phép. Loader bổ sung validation header/thứ tự và số dòng vào lỗi. Tests dùng unittest, cũng tương thích pytest khi được cài. Workflow `.github/workflows/python-tests.yml` vẫn rỗng, chưa chạy CI. Stack GUI sau M1 vẫn PyQt6.
 
 Các file scaffold khác trong `src/`, `tests/` được giữ; tên file không chứng minh tính năng tồn tại. Dataset AAPL/BTC hiện ở nhánh prototype; demo dùng fixture tổng hợp trong `tests/fixtures/`.
 
 ## Tài liệu nhóm
 
+- [Báo cáo hoàn thiện và cách xác nhận M1](docs/m1_completion.md)
 - [Lộ trình](ROADMAP.md)
 - [Báo cáo cho cả nhóm](docs/team_plan_report.md)
 - [So sánh nghiên cứu](docs/research_comparison.md)

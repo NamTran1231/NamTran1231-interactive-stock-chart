@@ -14,8 +14,8 @@ Luồng chính **M0 → M1 → M2 → M3 → M4 → M5**. Sau khi chốt contrac
 
 | Mốc | Nhiệm vụ | Chủ trì | Điều kiện bắt đầu | Trạng thái |
 | --- | --- | --- | --- | --- |
-| M0 | Đồng bộ tài liệu, contracts và nghiên cứu | 4 + cả nhóm review | Đã đối chiếu remote | [ ] Chờ review/merge |
-| M1 | Candle, CSV loader, synthetic fixture, CLI summary | 1 + 4 | M0 | [ ] Chưa nghiệm thu |
+| M0 | Đồng bộ tài liệu, contracts và nghiên cứu | 4 + cả nhóm review | Đã đối chiếu remote | [x] Tài liệu đã merge PR #1/#2; rubric/deadline còn mở |
+| M1 | Candle, CSV loader, synthetic fixture, CLI summary | Hưng + Nam | M0 | [ ] Code/tests hoàn thiện 18/11; chờ review/merge và chạy lại trên máy nhóm |
 | M2 | Chart nhỏ, axes, pan/zoom/hover, clipping | 2 + 4 | M1 | [ ] Chưa nghiệm thu |
 | M3 | Custom Ring Buffer/Segment Tree; scan oracle; autoscale | 1 + 3 + 2 | Contracts M1; tích hợp sau M2 | [ ] Chưa nghiệm thu |
 | M4 | Timer replay, controls và append/replace | 4 + 1 + 3 | M3 | [ ] Chưa nghiệm thu |
@@ -68,7 +68,7 @@ Chủ dự án đã chấp thuận phân công mới. Mỗi người tự test m
 - **File/API dự kiến:** `src/main_cli.py` — `run_cli_demo(csv_path: str)`; `src/main.py`; `src/ui/main_window.py`; `src/core/replay.py` — `ReplayController`; `benchmarks/benchmark_queries.py` — `run_benchmarks(...)`.
 - **Done:** Entry points chạy theo README, replay không lộ tương lai, checks toàn luồng đúng; phép đo tái lập. Mỗi role vẫn sở hữu test của mình.
 
-Các file/API mới trên đây là kế hoạch, chưa phải implementation đã tạo.
+Các file/API trên là bản đồ trách nhiệm toàn dự án; phần M1 đã có Candle, loader và CLI (entry point thực là `main()`). Các module GUI/DSA/replay mới còn là kế hoạch.
 
 ## 4. Phân công M1 — task giao cho từng thành viên
 
@@ -78,16 +78,16 @@ Các task dưới đây được giao theo tên trong roadmap; chưa phải GitH
 
 | Task | Người phụ trách | Nhiệm vụ và file/đầu ra | Phụ thuộc | Trạng thái |
 | --- | --- | --- | --- | --- |
-| M1-01A — Làm ngay | **Hưng** | Tạo `src/core/candle.py`: `@dataclass(frozen=True)` với timestamp: int và open/high/low/close/volume: float. Thêm demo trong khối `if __name__ == "__main__"` | Đọc Candle contract | [ ] Chưa nghiệm thu |
-| M1-03A — Làm ngay khi import được Candle | **Nam** | Tạo `src/main_cli.py`; import Candle của Hưng, tạo 3 nến mẫu, in mỗi nến một dòng và số nến bằng `len()` | M1-01A | [ ] Chưa nghiệm thu |
-| M1-02A — Giao sau lượt đầu | **Hưng** | Viết `load_candles(path) -> list[Candle]` trong `src/core/csv_loader.py`, đọc fixture chung bằng thư viện `csv` | M1-01A chạy được | [ ] Chưa nghiệm thu |
-| M1-03B — Giao sau lượt đầu | **Nam** | Thay danh sách viết sẵn bằng kết quả loader; in đủ 12 nến mẫu | M1-02A | [ ] Chưa nghiệm thu |
-| M1-01B / M1-02B — Hoàn thiện dữ liệu | **Hưng** | Thêm validation theo interfaces, lỗi có số dòng; viết tests model/CSV từng trường hợp | Loader cơ bản chạy được | [ ] Chưa nghiệm thu |
-| M1-03C / M1-05 — Hoàn thiện CLI | **Nam** | Nhận đường dẫn CSV; thống kê min low/max high/sum volume; xử lý lỗi/empty; tests CLI và README hướng dẫn chạy | Data validation ổn định | [ ] Chưa nghiệm thu |
+| M1-01A | **Hưng** | Candle cơ bản, 6 trường, immutable và demo | Candle contract | [x] Đã merge PR #3 |
+| M1-03A | **Nam** | CLI dùng Candle, in 3 nến mẫu | M1-01A | [x] Đã merge PR #4 |
+| M1-02A | **Hưng** | CSV loader đọc fixture chung thành 12 Candle | M1-01A | [x] Đã merge PR #4 |
+| M1-03B | **Nam** | Nối loader vào CLI; xem toàn bộ fixture với --limit 0 | M1-02A | [x] Luồng CSV/CLI đã merge; preview limit trong PR hoàn thiện |
+| M1-01B / M1-02B | **Hưng** | Validation model/CSV, lỗi theo dòng, tests | Loader cơ bản | [ ] Đã có code/tests trong PR hoàn thiện; chờ review/merge |
+| M1-03C / M1-05 | **Nam** | Stats toàn bộ dữ liệu, error handling, preview limit, tests và README | Data validation | [ ] Đã có code/tests trong PR hoàn thiện; chờ review/merge |
 
 ### Cách giao từng bước và nghiệm thu
 
-**Chỉ giao lượt đầu M1-01A và M1-03A ngay bây giờ.** Chạy được rồi mới giao bước tiếp; không yêu cầu người mới giải quyết toàn bộ bảng một lần.
+Các bước nhỏ dưới đây giữ lại để Hưng/Nam học và đọc code theo thứ tự. **Cập nhật 18/11:** implementation M1 đã hoàn thiện trên nhánh PR, 19 tests đạt; bước hiện tại là review code và chạy lại theo [báo cáo M1](docs/m1_completion.md). Không đánh dấu nghiệm thu trên máy nhóm khi chưa chạy thật.
 
 - **Hưng, bước đầu:** Học `Python dataclass cơ bản`, khai báo đủ sáu trường. Từ repo root chạy `python -m src.core.candle` (hoặc `python3`). Demo tạo một Candle với timestamp 1704067200, open 100, high 105, low 98, close 103, volume 1000; in đối tượng và close. Import từ module khác không tự in demo. Gửi Nam file, lệnh và output. Type hints chưa phải validation; phần kiểm tra dữ liệu làm ở bước sau.
 - **Nam, bước đầu:** Học import/list/for/f-string; dùng đúng class của Hưng. Chạy `python -m src.main_cli` thấy 3 nến và số lượng 3; không tạo class Candle thứ hai.
@@ -110,6 +110,6 @@ Không gán hạn ngày tùy ý khi chưa biết deadline môn học. Mỗi chec
 
 Mỗi check-in: demo phần chạy được, tests đã chạy, blocker, thay đổi contract và PR tiếp theo. Tick khi đạt nghiệm thu, không dựa vào số file/commit.
 
-**Nhiệm vụ implementation tiếp theo duy nhất: M1 — Candle model + CSV loader nhỏ + CLI summary.** Bổ sung rubric/deadline sớm; chưa biết vẫn có thể chốt contracts và fixture.
+**Bước tiếp theo:** review/merge bản hoàn thiện M1, Hưng hoặc Nam chạy lại demo/tests và ghi kết quả. Sau khi xác nhận M1, chuyển M2: chart QPainter nhỏ do Dũng chủ trì. Bổ sung rubric/deadline khi có; không tự bắt đầu GUI trong PR M1.
 
 Xem [CONTRIBUTING.md](CONTRIBUTING.md) cho workflow và [báo cáo nhóm](docs/team_plan_report.md) cho việc chuyển kế hoạch.
