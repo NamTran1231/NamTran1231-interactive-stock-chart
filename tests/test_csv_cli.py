@@ -97,6 +97,72 @@ class CsvCliTests(unittest.TestCase):
                 self.assertIn("Lỗi:", result.stderr)
                 self.assertNotIn("Traceback", result.stderr)
 
+    def test_model_errors_keep_csv_line_and_reason(self):
+        for row, reason in [
+            ("1,100,105,98,103,-1\n", "volume"),
+            ("1,100,inf,98,103,1\n", "high"),
+            ("1,100,99,98,103,1\n", "OHLC"),
+        ]:
+            with self.subTest(reason=reason):
+                with self.assertRaisesRegex(ValueError, f"CSV row 2:.*{reason}"):
+                    self.load_text(HEADER + row)
+
+    def test_cli_summary_uses_entire_dataset_with_limited_preview(self):
+        result = self.run_cli("tests/fixtures/candles_valid.csv", "--limit", "2")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for expected in ["Số nến: 12", "Hiển thị 2/12", "Min low: 98.00",
+                         "Max high: 113.00", "Tổng volume: 13600.00",
+                         "Timestamp đầu (UTC Unix seconds): 1704067200",
+                         "Timestamp cuối (UTC Unix seconds): 1704067860"]:
+            self.assertIn(expected, result.stdout)
+        self.assertEqual(len([line for line in result.stdout.splitlines()
+                              if line.strip().startswith("170406")]), 2)
+
+    def test_cli_all_rows_and_invalid_limits(self):
+        result = self.run_cli("tests/fixtures/candles_valid.csv", "--limit", "0")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len([line for line in result.stdout.splitlines()
+                              if line.strip().startswith("170406")]), 12)
+        for value in ["-1", "bad", "1.5"]:
+            with self.subTest(value=value):
+                result = self.run_cli("--limit", value)
+                self.assertEqual(result.returncode, 2)
+                self.assertNotIn("Traceback", result.stderr)
+
+    def test_cli_empty_and_single_row_summary(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "input.csv"
+            for text in ["", HEADER]:
+                path.write_text(text, encoding="utf-8")
+                result = self.run_cli(str(path))
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn("Không có dữ liệu nến.", result.stdout)
+                self.assertNotIn("Min low:", result.stdout)
+            path.write_text(HEADER + ROW, encoding="utf-8")
+            result = self.run_cli(str(path))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            for expected in ["Số nến: 1", "Min low: 98.00", "Max high: 105.00",
+                             "Tổng volume: 1000.00"]:
+                self.assertIn(expected, result.stdout)
+
+    def test_cli_import_has_no_demo_output(self):
+        result = subprocess.run(
+            [sys.executable, "-c", "import src.core.candle; import src.main_cli"],
+            cwd=ROOT, capture_output=True, text=True, encoding="utf-8",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "")
+
+    def test_cli_rejects_broken_quotes_and_invalid_utf8(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "input.csv"
+            for content in [(HEADER + '"unterminated').encode(), b"\xff\xfe"]:
+                path.write_bytes(content)
+                result = self.run_cli(str(path))
+                self.assertEqual(result.returncode, 1)
+                self.assertIn("Lỗi:", result.stderr)
+                self.assertNotIn("Traceback", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
