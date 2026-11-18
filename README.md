@@ -11,7 +11,7 @@ Dự án đại học của nhóm 4 thành viên: xây biểu đồ nến OHLCV 
 - Ba nhánh Stage 1 còn lại vẫn tại scaffold `6a4c245`.
 - Chưa có ứng dụng hoàn chỉnh hay kết quả benchmark được xác minh trong đợt rà soát này.
 
-**Các chức năng dưới đây là mục tiêu phát triển, chưa phải hành vi đã chạy.**
+**Bổ sung trong PR demo M1:** Candle của Hưng, CSV loader và CLI in bảng đã có implementation; xem lệnh chạy bên dưới. Các chức năng GUI, DSA, replay và benchmark dưới đây vẫn là mục tiêu phát triển, chưa phải hành vi đã chạy.
 
 ## Mục tiêu bản phát hành đầu
 
@@ -45,9 +45,19 @@ Nguồn trade thật, tạo nến từ trade, nhiều mã/timeframe, Quadtree, L
 
 ## Thiết lập và chạy
 
-Stack dự kiến: Python 3.10+, PyQt6, pytest. Hiện `main` chưa có `requirements.txt`, CLI chạy được hoặc lệnh demo đã xác minh. M1 sẽ bổ sung dependencies, fixture synthetic và hướng dẫn chạy thực tế. `.github/workflows/python-tests.yml` là placeholder rỗng, chưa chạy test.
+Demo M1 trong nhánh/PR này dùng Python 3.10+ và thư viện chuẩn, chưa cần cài Qt. Chạy từ thư mục gốc repository (dùng `python3` thay `python` nếu máy yêu cầu):
 
-Các file rỗng trong `src/`, `tests/` được giữ để bảo toàn scaffold; tên file không chứng minh tính năng tồn tại. Dataset AAPL/BTC hiện ở nhánh prototype, chưa nằm trong `main`.
+```bash
+python -m src.main_cli
+python -m src.main_cli tests/fixtures/candles_valid.csv
+python -m unittest discover -s tests -p 'test_csv_cli.py' -v
+```
+
+Lệnh đầu in 3 nến mẫu; lệnh thứ hai đọc và in 12 nến synthetic. CLI nhận đường dẫn tùy chọn, báo lỗi qua stderr và exit status 1; file rỗng thông báo không có dữ liệu. Import module không tự chạy demo.
+
+Demo này chưa phải M1 hoàn chỉnh: CLI chưa có thống kê tổng hợp, model Candle chưa tự validation khi được tạo trực tiếp. Loader đã kiểm tra dữ liệu CSV theo contract. Stack GUI dự kiến vẫn PyQt6; tests ở đây dùng unittest và cũng có thể chạy bằng pytest sau khi nhóm thiết lập dependency. `.github/workflows/python-tests.yml` vẫn là placeholder rỗng, chưa chạy CI.
+
+Các file scaffold khác trong `src/`, `tests/` được giữ; tên file không chứng minh tính năng tồn tại. Dataset AAPL/BTC hiện ở nhánh prototype; demo dùng fixture tổng hợp trong `tests/fixtures/`.
 
 ## Tài liệu nhóm
 
