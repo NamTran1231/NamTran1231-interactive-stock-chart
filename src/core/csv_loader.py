@@ -1,4 +1,4 @@
-"""Đọc CSV chuẩn của dự án thành danh sách Candle, không phụ thuộc GUI."""
+"""Load the project's standard CSV format into candles without GUI dependencies."""
 
 import csv
 
@@ -9,7 +9,7 @@ FIELDS = ["timestamp", "open", "high", "low", "close", "volume"]
 
 
 def load_candles(path: str) -> list[Candle]:
-    """Đọc toàn bộ file; lỗi dữ liệu gây ValueError kèm số dòng."""
+    """Read the entire file; report invalid data as ValueError with a row number."""
     candles = []
     with open(path, encoding="utf-8", newline="") as file:
         reader = csv.DictReader(file, strict=True)

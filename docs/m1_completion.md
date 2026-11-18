@@ -1,26 +1,26 @@
-# Báo cáo hoàn thiện M1 — 18/11/2026
+# M1 Completion Report — November 18, 2026
 
-## 1. Trạng thái
+## 1. Status
 
-PR #3/#4 đã merge nền tảng Candle/CSV/CLI vào main tại `3590729`. Nhánh `feature/m1-completion` bổ sung phần còn lại: model validation, summary, preview limit và tests. **Code và kiểm tra trên máy agent đã hoàn thành; chờ Nam review/merge và xác nhận chạy lại trên máy nhóm.**
+PRs #3/#4 introduced the initial Candle/CSV/CLI implementation. PR #5 completed model validation, statistics, preview limits, and tests and has been merged into main at `9920f75`. The `docs/m1-english` follow-up translates the interface and documentation. **Implementation and agent-side checks are complete; the team still needs to confirm an independent run.**
 
-Phân công vẫn Hưng (model/CSV) và Nam (CLI/integration). Hưng tạo model ban đầu; agent hỗ trợ triển khai loader/CLI và phần hoàn thiện theo yêu cầu Nam. Không ghi các phần agent làm là đóng góp tự viết của thành viên khác. Phát/Dũng chưa có task kiểm thử chuyên trách M1.
+Ownership remains Hưng (model/CSV) and Nam (CLI/integration). Hưng created the initial model; the agent assisted with the loader/CLI and completion at Nam's request. Agent-written changes should not be attributed as independently written student work. Phát and Dũng do not have dedicated M1 testing assignments.
 
-## 2. Đầu ra đã có
+## 2. Deliverables
 
-| Thành phần | File | Hành vi |
+| Component | File | Behavior |
 | --- | --- | --- |
-| Model | `src/core/candle.py` | Immutable; validate khi tạo trực tiếp: timestamp int, numeric finite, OHLC hợp lệ, volume >= 0 |
-| Loader | `src/core/csv_loader.py` | UTF-8 CSV đúng header → list Candle; reject malformed, duplicate/out-of-order; lỗi theo dòng; giữ I/O errors |
-| CLI | `src/main_cli.py` | Demo 3 nến hoặc CSV, bảng mẫu giới hạn dòng, stats toàn bộ dữ liệu, empty/error handling |
-| Fixture | `tests/fixtures/candles_valid.csv` | 12 nến synthetic xác định, không tải ngoài |
-| Kiểm thử | `tests/test_candle.py`, `tests/test_csv_cli.py` | Model trực tiếp và end-to-end CLI subprocess |
+| Model | `src/core/candle.py` | Immutable; validates integer timestamps, finite numeric values, OHLC bounds, and nonnegative volume on direct construction |
+| Loader | `src/core/csv_loader.py` | UTF-8 CSV to candles; rejects malformed/duplicate/out-of-order input, adds row context, preserves I/O errors |
+| CLI | `src/main_cli.py` | Three-candle demo or CSV input, bounded table preview, full-data summary, empty/error handling |
+| Fixture | `tests/fixtures/candles_valid.csv` | 12 deterministic synthetic candles; no external download |
+| Tests | `tests/test_candle.py`, `tests/test_csv_cli.py` | Direct model validation and end-to-end CLI subprocess checks |
 
-Model là nơi kiểm tra tính hợp lệ một nến; loader chỉ convert và bổ sung số dòng cho lỗi. Không duy trì hai bộ OHLC validation khác nhau. CLI thống kê bằng scan; không cần Segment Tree để hoàn thành M1.
+The model owns individual-candle validation. The loader converts fields and adds row numbers instead of maintaining duplicate OHLC rules. CLI statistics use scans; M1 does not require a Segment Tree.
 
-## 3. Cách chạy lại
+## 3. Reproduction
 
-Tại repo root, Python 3.10+; không cần pip install. Có thể tạo venv theo README. Dùng `python3` thay `python` nếu máy yêu cầu:
+Run from the repository root using Python 3.10+. No pip dependencies are needed. An optional virtual environment is documented in README. Use `python3` if required by your system:
 
 ```bash
 python -m src.core.candle
@@ -30,34 +30,34 @@ python -m src.main_cli tests/fixtures/candles_valid.csv --limit 0
 python -m unittest discover -s tests -v
 ```
 
-Kỳ vọng: demo model close 103; CLI mặc định 3 nến; CSV 12 nến. Khi --limit 2 chỉ in 2 dòng nhưng vẫn thống kê cả 12 nến:
+Expected: model demo close price 103; default CLI demo three candles; CSV fixture 12 candles. With `--limit 2`, the table has two rows but the summary covers all 12:
 
 ```text
-Số nến: 12
-Timestamp đầu (UTC Unix seconds): 1704067200
-Timestamp cuối (UTC Unix seconds): 1704067860
+Candle count: 12
+First timestamp (UTC Unix seconds): 1704067200
+Last timestamp (UTC Unix seconds): 1704067860
 Min low: 98.00
 Max high: 113.00
-Tổng volume: 13600.00
+Total volume: 13600.00
 ```
 
---limit 0 in hết; giá trị âm/không nguyên gây argparse error (status 2). File lỗi/không tồn tại trả 1 và stderr rõ ràng; thành công trả 0. Empty/header-only không crash; single-row vẫn có summary.
+`--limit 0` displays every row. Negative/non-integer limits return status 2. Invalid data/missing files return status 1 with an error on stderr; success returns 0. Empty/header-only input does not crash; single-row input has a summary.
 
-## 4. Evidence và nghiệm thu
+## 4. Evidence and acceptance
 
-Trên máy agent Linux (kernel `7.0.0-43-generic`), Python **3.14.4**, đã chạy `python3 -m unittest discover -s tests -v`: **19 tests PASS**. Chưa chạy trên Python 3.10 hoặc OS khác trong đợt này. Có subtests cho nhiều field/giá trị lỗi, không tính mỗi subtest thành một test riêng. Lệnh CSV --limit 2 cho số liệu đúng bảng trên. Whitespace và 16 local Markdown link targets được kiểm tra trước commit.
+The M1 completion was tested on the agent's Linux environment (kernel `7.0.0-43-generic`), Python **3.14.4**: `python3 -m unittest discover -s tests -v` — **19 tests passed**. Python 3.10 and other operating systems were not exercised in that run. Subtests cover multiple invalid values but are not counted as separate tests. The CSV command with `--limit 2` produced the expected statistics. Whitespace and 16 local Markdown link targets were checked for the completion PR. The English follow-up updates assertions to match the translated messages and reruns the suite.
 
-Đã kiểm tra: frozen model, timestamp types (loại bool), mọi numeric field với NaN/infinity/nonnumeric, OHLC/negative volume, flat/negative price/zero volume; CSV empty/single-row/headers/columns/format/ordering; row-number errors; CLI preview không cắt summary, all rows, invalid limit, missing file, broken quotes/encoding và import không tự demo.
+Coverage includes immutability, timestamp types excluding bool, non-finite/nonnumeric values in every numeric field, OHLC/volume rules, negative/flat prices, zero volume, CSV empty/single-row/header/column/order errors, row-specific errors, preview-independent summaries, all-row output, invalid limits, missing files, broken quotes, encoding errors, and quiet imports.
 
-- [x] Fixture và load/validation không phụ thuộc GUI hay download.
-- [x] CLI summary và sample table chạy được.
-- [x] Tests model/CSV/CLI đạt trên máy agent.
-- [x] README có lệnh setup/demo/test và expected output.
-- [ ] Nam review/merge PR hoàn thiện.
-- [ ] Hưng hoặc Nam chạy lại từ README trên máy mình, ghi OS/Python/commit/lệnh/output và kết quả vào PR.
+- [x] Deterministic fixture and data validation without GUI/download dependencies.
+- [x] CLI summary and sample table.
+- [x] Model/CSV/CLI tests pass on the agent's machine.
+- [x] README includes setup/demo/test commands and expected output.
+- [x] M1 implementation merged through PR #5.
+- [ ] Hưng or Nam reproduces the commands on their machine and records OS, Python version, commit, commands, and results in the PR.
 
-Chưa có xác nhận chạy độc lập từ thành viên; không dùng automation trên máy agent để giả lập việc đó. CI vẫn là file workflow rỗng, không tuyên bố CI pass. Chưa benchmark hay đo tốc độ. GUI/DSA/replay thuộc các mốc sau.
+Agent-side automation does not substitute for a teammate's independent run. The workflow is still empty; no CI success is claimed. No benchmark was run. GUI, custom DSA integration, and replay belong to later milestones.
 
-## 5. Bước sau
+## 5. Next step
 
-Sau review/merge và chạy lại đạt, Nam cập nhật trạng thái M1 hoàn thành trong ROADMAP. M2 sẽ bắt đầu bằng QPainter chart nhỏ; chưa triển khai M2 trong bản thay đổi này. Rubric/deadline vẫn cần nhóm cung cấp.
+After the team's successful reproduction, Nam can mark M1 accepted in ROADMAP. M2 begins with a small QPainter chart led by Dũng. This change does not implement M2. The course rubric and deadline remain open constraints.

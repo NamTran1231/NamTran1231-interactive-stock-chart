@@ -1,4 +1,4 @@
-"""Kiểm tra contract Candle khi tạo trực tiếp, không qua loader."""
+"""Check the Candle contract for direct construction outside the loader."""
 
 from dataclasses import FrozenInstanceError
 import unittest
