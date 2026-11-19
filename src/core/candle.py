@@ -1,9 +1,40 @@
+"""[P01] Candle — Immutable OHLCV Domain Model (Easy).
+
+Run tests:
+    pytest -m p01
+
+Problem:
+    Implement validation and derived properties for an immutable OHLCV
+    candlestick (`Candle`). Every downstream algorithm and chart widget assumes
+    `Candle` objects satisfy financial invariants.
+
+Constraints:
+    - `timestamp`: must be a real `int` (reject `bool`, `float`, `str`, `None`
+      with `TypeError`) and `>= 0` (else `ValueError`).
+    - `open`, `high`, `low`, `close`, `volume`: must be real finite numbers
+      (reject `bool` / non-numeric with `TypeError`; reject `NaN` / `±Inf` with
+      `ValueError`). Normalize stored values to `float`.
+    - `volume >= 0.0` (else `ValueError`).
+    - `low <= min(open, close)` and `high >= max(open, close)` and
+      `low <= high` (else `ValueError`). Doji candles (`O == H == L == C`,
+      `volume == 0.0`) are valid.
+    - All operations must run in O(1) time and O(1) space.
+
+Example:
+    >>> c = Candle(1700000000, 100.0, 105.0, 98.0, 103.0, 250.0)
+    >>> (c.is_bullish, c.body_low, c.body_high)
+    (True, 100.0, 103.0)
+"""
+
+from __future__ import annotations
+
 from dataclasses import dataclass
-import math
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Candle:
+    """Immutable OHLCV candlestick."""
+
     timestamp: int
     open: float
     high: float
@@ -12,38 +43,20 @@ class Candle:
     volume: float
 
     def __post_init__(self) -> None:
-        """Validate every candle, including instances created outside the CSV loader."""
-        if type(self.timestamp) is not int:
-            raise ValueError("timestamp must be integer Unix seconds")
+        """Validate OHLCV invariants and normalize numeric fields to float (O(1))."""
+        raise NotImplementedError("TODO(P01): validate Candle invariants in __post_init__")
 
-        for field in ("open", "high", "low", "close", "volume"):
-            value = getattr(self, field)
-            if isinstance(value, bool) or not isinstance(value, (int, float)):
-                raise ValueError(f"{field} must be a finite number")
-            try:
-                finite = math.isfinite(value)
-            except OverflowError:
-                finite = False
-            if not finite:
-                raise ValueError(f"{field} must be finite")
+    @property
+    def is_bullish(self) -> bool:
+        """Return True if close >= open, else False (O(1))."""
+        raise NotImplementedError("TODO(P01): implement Candle.is_bullish")
 
-        if self.volume < 0:
-            raise ValueError("volume must be nonnegative")
-        if not (
-            self.low <= min(self.open, self.close)
-            <= max(self.open, self.close) <= self.high
-        ):
-            raise ValueError("invalid OHLC bounds")
+    @property
+    def body_low(self) -> float:
+        """Return min(open, close) (O(1))."""
+        raise NotImplementedError("TODO(P01): implement Candle.body_low")
 
-
-if __name__ == "__main__":
-    candle = Candle(
-        timestamp=1704067200,
-        open=100.0,
-        high=105.0,
-        low=98.0,
-        close=103.0,
-        volume=1000.0,
-    )
-    print(candle)
-    print("Close price:", candle.close)
+    @property
+    def body_high(self) -> float:
+        """Return max(open, close) (O(1))."""
+        raise NotImplementedError("TODO(P01): implement Candle.body_high")
