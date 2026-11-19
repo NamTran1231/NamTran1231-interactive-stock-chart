@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dsa-trading-chart-engine"
+version = "0.1.0"
+description = "Interactive trading chart and quantitative technical analysis engine backed by custom DSA structures."
+requires-python = ">=3.10"
+dependencies = [
+    "PyQt6>=6.6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[project.scripts]
+dsa-chart = "src.main:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "p01: [P01] Candle OHLCV domain model",
+    "p02: [P02] CSV loader & row parser",
+    "p03: [P03] RingBuffer O(1) circular array",
+    "p04: [P04] Data simulator & ReplayDataSource (Factory Method)",
+    "p05: [P05] CircularDeque, MonotonicDeque & SlidingWindowIndicators",
+    "p06: [P06] CoordinateTransformer & ViewportState (Prototype)",
+    "p07: [P07] SegmentTree O(log N) range stats & scan_range oracle",
+    "p08: [P08] LTTBDecimator & aggregate_ohlcv_buckets",
+    "p09: [P09] QuadTree 2D spatial index",
+    "p10: [P10] EventBus thread-safe Observer pattern",
+    "p11: [P11] Command & CommandHistory Undo/Redo pattern",
+    "integration: Final Boss end-to-end UI (headless PyQt6), CLI & benchmark",
+]
