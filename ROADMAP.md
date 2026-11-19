@@ -1,94 +1,115 @@
-# Lộ trình Phát triển 6 Tuần — Interactive TradingView Stock Chart Engine (DSA Python)
+# ROADMAP — DSA Stock Chart
 
-- **Giai đoạn triển khai:** 16/11/2026 – 27/12/2026 (6 tuần / 6 Milestones: M1–M6)
-- **Công nghệ cốt lõi:** Python 3.10+ (verified Python 3.14.9), `PyQt6>=6.6.0` (custom `QPainter` widget), `pytest>=8.0.0` (verified pytest 9.2.0)
-- **Cấu trúc nhân sự:** 4 thành viên phân bổ đồng đều 25% – 25% – 25% – 25%
+## 1. Hướng đi thống nhất
 
----
+Thay “DSA → benchmark → GUI bonus” bằng **M0–M6**: demo nhỏ chạy sớm, tích hợp DSA vào tính năng rồi đo hiệu quả. Bản đầu: một mã/một timeframe intraday, CSV và offline replay, Python + PyQt6/QPainter.
 
-## Tổng quan Tiến độ (M1–M6)
+Ring Buffer và Segment Tree phải tự cài đặt; không dùng deque/thư viện cây để thay phần DSA cần chấm. List được dùng làm mảng; thư viện chuẩn `csv` được dùng để parsing.
 
-```mermaid
-flowchart TD
-    M1["M1: 16/11/2026 - 22/11/2026<br/>Setup Repo, CI/CD, API Contracts, Candle, csv_loader, RingBuffer core, Skeletons"]
-    M2["M2: 23/11/2026 - 29/11/2026<br/>RingBuffer + Simulator, CircularDeque + MonotonicDeque + Indicators, SegmentTree + Oracle, EventBus + CommandHistory"]
-    M3["M3: 30/11/2026 - 06/12/2026<br/>CoordinateTransformer (Affine + Zoom/Pan), LTTB + OHLC Buckets + QuadTree, ChartCanvasWidget"]
-    M4["M4: 07/12/2026 - 13/12/2026<br/>MainWindow (QTimer Replay, Toggles, Undo/Redo, CSV Reload) & Complete Unit Test Suites"]
-    M5["M5: 14/12/2026 - 20/12/2026<br/>tests/test_integration.py, CLI & Benchmark, tracemalloc/perf_counter Profiling & Bug Fix"]
-    M6["M6: 21/12/2026 - 27/12/2026<br/>Academic Docs, Final Report, GitHub Actions CI 100% Pass & Demo Package"]
+**Rubric và deadline chưa được cung cấp.** Không gán lại lịch ba tuần hay hứa điểm số. Sliding Window/Quadtree/LTTB tùy chọn nếu rubric không bắt buộc.
 
-    M1 --> M2 --> M3 --> M4 --> M5 --> M6
-```
+## 2. Timeline theo dependencies và check-in
 
----
+Luồng chính **M0 → M1 → M2 → M3 → M4 → M5**. Sau khi chốt contracts, thành viên 3 có thể phát triển/test cây song song M2. M6 chỉ bắt đầu khi lõi ổn định và còn thời gian.
 
-## Chi tiết Từng Chặng Lộ trình & Tiêu chí Kiểm thử
+| Mốc | Nhiệm vụ | Chủ trì | Điều kiện bắt đầu | Trạng thái |
+| --- | --- | --- | --- | --- |
+| M0 | Đồng bộ tài liệu, contracts và nghiên cứu | 4 + cả nhóm review | Đã đối chiếu remote | [x] Tài liệu đã merge PR #1/#2; rubric/deadline còn mở |
+| M1 | Candle, CSV loader, synthetic fixture, CLI summary | Hưng + Nam | M0 | [ ] Code/tests hoàn thiện 18/11; chờ review/merge và chạy lại trên máy nhóm |
+| M2 | Chart nhỏ, axes, pan/zoom/hover, clipping | 2 + 4 | M1 | [ ] Chưa nghiệm thu |
+| M3 | Custom Ring Buffer/Segment Tree; scan oracle; autoscale | 1 + 3 + 2 | Contracts M1; tích hợp sau M2 | [ ] Chưa nghiệm thu |
+| M4 | Timer replay, controls và append/replace | 4 + 1 + 3 | M3 | [ ] Chưa nghiệm thu |
+| M5 | OHLCV grouping, benchmark và report | 4 + cả nhóm | M4 đúng | [ ] Chưa nghiệm thu |
+| M6 | Extension có mục đích | Theo extension | Lõi ổn định, còn thời gian | [ ] Tùy chọn |
 
-### Tuần 1 — M1 (16/11/2026 – 22/11/2026 | Deadline: 22/11/2026)
-- **Phạm vi kỹ thuật:**
-  - Khởi tạo repository chuẩn hóa, cấu hình `requirements.txt` (`PyQt6>=6.6.0`, `pytest>=8.0.0`) và CI `.github/workflows/python-tests.yml`.
-  - Khóa cứng 14 API Contracts trong `docs/interfaces.md`.
-  - Cài đặt `Candle` frozen dataclass (`src/core/candle.py`) với kiểm định invariants tài chính.
-  - Cài đặt `parse_candle_row` & `load_candles` (`src/core/csv_loader.py`) kiểm tra timestamp tăng nghiêm ngặt và báo lỗi theo dòng `line_num`.
-  - Cài đặt khung lõi `RingBuffer` (`src/core/ring_buffer.py`, cấm `collections.deque`) và tạo skeleton chuẩn chữ ký cho `CircularDeque`, `SegmentTree`, `MainWindow`, `src/main.py`.
-- **Tiêu chí kiểm thử (Verification Gate M1):**
-  - `pip install -r requirements.txt` thành công.
-  - `pytest -v` chạy thông suốt trên GitHub Actions CI cho các test khởi tạo `Candle`, `csv_loader` và `RingBuffer`.
-  - Không có `collections.deque` trong `RingBuffer` hoặc `CircularDeque`.
+### Acceptance criteria
 
-### Tuần 2 — M2 (23/11/2026 – 29/11/2026 | Deadline: 29/11/2026)
-- **Phạm vi kỹ thuật:**
-  - Hoàn thiện `RingBuffer` + `generate_synthetic_candles` + `ReplayDataSource` (`src/core/data_simulator.py`) + bộ dữ liệu mẫu `data/sample_ohlcv.csv`.
-  - Hoàn thiện `CircularDeque` (auto-resize 2x, cấm `collections.deque`), `MonotonicDeque` (`'min'` / `'max'`), và `SlidingWindowIndicators` (`rolling_min_max`, `sma`, `ema`, `donchian_channels`, `bollinger_bands`) tại `src/algorithms/monotonic_deque.py`.
-  - Hoàn thiện `RangeStats`, `SegmentTree` (truy vấn nửa mở `[left, right)`, `update`, `append` với dynamic power-of-2 capacity rebuild) và oracle vét cạn `scan_range` tại `src/algorithms/segment_tree.py`.
-  - Hoàn thiện `EventBus` (`src/patterns/observer.py`) và `Command` / `ViewportChangeCommand` / `CommandHistory` (`src/patterns/command_history.py`).
-- **Tiêu chí kiểm thử (Verification Gate M2):**
-  - Differential test: `SegmentTree.query(left, right)` phải khớp 100% với `scan_range(candles, left, right)` trên mọi dải chỉ số ngẫu nhiên.
-  - `CircularDeque` ném `IndexError` khi rỗng và giữ đúng thứ tự FIFO/LIFO sau nhiều vòng mở rộng dung lượng $2\times$.
-  - `MonotonicDeque` và `SlidingWindowIndicators` đạt độ chính xác số học $10^{-9}$ so với tính toán tham chiếu.
-  - `CommandHistory` chứng minh Undo/Redo đúng trạng thái và cắt nhánh redo khi `execute()` lệnh mới.
+- **M0:** Tài liệu thống nhất scope/status/contracts, nguồn có link, unresolved rubric/deadline rõ ràng. Kiểm tra lại API nguồn trước implementation.
+- **M1:** Synthetic fixture xác định, không phụ thuộc download; parse đúng; lỗi có số dòng; test empty/single-row, malformed, duplicate/out-of-order; README có lệnh setup/demo thực sự chạy được.
+- **M2:** Khoảng 100 nến hiển thị đúng OHLC, axes có nghĩa, pan/zoom/hover đúng; xử lý resize, flat prices, empty data và bounds. Autoscale ban đầu được phép scan.
+- **M3:** Tree build O(N), query/point update O(log N), storage O(N); khớp scan qua random ranges và updates. Buffer qua nhiều vòng wraparound đúng, capacity > 0. Chart thay scan bằng tree; giữ scan làm oracle. Fractional volume so với tolerance.
+- **M4:** Replay xác định cho kết quả mong đợi; cùng timestamp replace latest, mới hơn append, cũ hơn reject; không rebuild toàn bộ tree mỗi event. Test restart và capacity expansion. Chart/stats không lộ nến sau cursor.
+- **M5:** Grouping giữ đúng OHLCV; benchmark ghi môi trường, seed/count, baseline, repeated runs; tách loading/query/ingestion/rendering. Chỉ công bố tốc độ thực đo.
+- **M6:** Mỗi extension có mục đích người dùng, edge cases và validation. Không mặc định làm tất cả.
 
-### Tuần 3 — M3 (30/11/2026 – 06/12/2026 | Deadline: 06/12/2026)
-- **Phạm vi kỹ thuật:**
-  - Hoàn thiện `ViewportState` và `CoordinateTransformer` (`src/core/coordinate_math.py`) cho biến đổi Affine World $\leftrightarrow$ Screen, `zoom_at_pixel` neo theo con trỏ chuột và `pan_by_pixels`.
-  - Hoàn thiện `LTTBDecimator.downsample` và `aggregate_ohlcv_buckets` (`src/algorithms/lttb_decimator.py`).
-  - Hoàn thiện `Bounds`, `SpatialPoint`, `QuadTree` (`insert`, `query_range`, `nearest`) tại `src/algorithms/quad_tree.py`.
-  - Xây dựng `ChartCanvasWidget` (`src/ui/chart_canvas.py`) dùng `QPainter` cùng phương thức headless `compute_visible_frame()`.
-- **Tiêu chí kiểm thử (Verification Gate M3):**
-  - Kiểm chứng biến đổi khả nghịch `screen_to_world(world_to_screen(i, p))` sai số $< 10^{-9}$ và bất biến điểm neo `x_to_index(pixel_x)` khi `zoom_at_pixel`.
-  - `LTTBDecimator` bảo toàn điểm đầu/cuối; `aggregate_ohlcv_buckets` bảo toàn OHLCV chuẩn xác.
-  - `QuadTree.query_range` & `QuadTree.nearest` khớp 100% với tìm kiếm tuyến tính vét cạn.
-  - `ChartCanvasWidget.compute_visible_frame()` thực thi thành công ở chế độ headless không cần display server.
+## 3. Đúng 4 vai trò và đầu ra
 
-### Tuần 4 — M4 (07/12/2026 – 13/12/2026 | Deadline: 13/12/2026)
-- **Phạm vi kỹ thuật:**
-  - Hoàn thiện `MainWindow` (`src/ui/main_window.py`) tích hợp `ChartCanvasWidget`, `QTimer` Replay (Play/Pause/Reset/Speed), Indicator Toggles (SMA, EMA, Bollinger, Donchian, Decimation), Undo/Redo, CSV Reload và Status bar.
-  - Hoàn thiện đầy đủ 4 bộ Unit Tests chuyên biệt: `tests/test_ring_buffer.py`, `tests/test_monotonic_deque.py`, `tests/test_segment_tree.py`, `tests/test_lttb.py`.
-- **Tiêu chí kiểm thử (Verification Gate M4):**
-  - `pytest -v` chạy toàn bộ 4 file unit test đạt 100% Pass.
-  - Kiểm tra mọi trường hợp biên: dữ liệu ít hơn cửa sổ chỉ báo, CSV lỗi giữa file, thao tác Undo/Redo liên tiếp khi đang Replay.
+Chủ dự án đã chấp thuận phân công mới. Mỗi người tự test module mình, review chéo và đọc [interfaces](docs/interfaces.md) trước triển khai. Role 4 điều phối, không gánh toàn bộ test.
 
-### Tuần 5 — M5 (14/12/2026 – 20/12/2026 | Deadline: 20/12/2026)
-- **Phạm vi kỹ thuật:**
-  - Xây dựng `tests/test_integration.py` kiểm thử luồng End-to-End từ nạp dữ liệu $\to$ DSA pipeline $\to$ Command/Observer $\to$ `compute_visible_frame()`.
-  - Hoàn thiện CLI & Benchmark runner trong `src/main.py` theo chuẩn:
-    - `python3 -m src.main [--cli | --benchmark | --gui] [--csv data/sample_ohlcv.csv] [--count 10000]`
-  - Thực hiện profiling bộ nhớ (`tracemalloc`) và thời gian thực thi (`time.perf_counter`), xử lý các lỗi biên & tối ưu hiệu năng.
-- **Tiêu chí kiểm thử (Verification Gate M5):**
-  - `python3 -m src.main --cli` và `python3 -m src.main --benchmark` chạy thành công và xuất số liệu hiệu năng rõ ràng.
-  - `pytest -v` (bao gồm cả `tests/test_integration.py`) đạt 100% Pass.
-  - Kiểm chứng độ phức tạp thực nghiệm $O(\log N)$ của `SegmentTree.query` vượt trội rõ rệt so với $O(N)$ của `scan_range` ở `--count 10000`+.
+### Thành viên 1 — Hưng — Dữ liệu, CSV, Ring Buffer
 
-### Tuần 6 — M6 (21/12/2026 – 27/12/2026 | Deadline: 27/12/2026)
-- **Phạm vi kỹ thuật:**
-  - Hoàn thiện toàn bộ tài liệu học thuật & hướng dẫn kỹ thuật (`README.md`, `ROADMAP.md`, `DEADLINES_AND_TASKS.md`, `CONTRIBUTING.md`, `docs/interfaces.md`, `docs/team_plan_report.md`).
-  - Tổng rà soát code quality, docstrings, type hints, loại bỏ code thừa.
-  - Xác minh CI GitHub Actions xanh 100% trên nhánh `main`, đóng gói sản phẩm và chuẩn bị Demo cuối kỳ.
-- **Tiêu chí kiểm thử (Verification Gate M6):**
-  - 100% lệnh chuẩn hoạt động ổn định:
-    - `pip install -r requirements.txt`
-    - `pytest -v`
-    - `python3 -m src.main --cli`
-    - `python3 -m src.main --benchmark`
-    - `python3 -m src.main`
-  - GitHub Actions CI pass 100% trên commit bàn giao cuối cùng ngày 27/12/2026.
+- **Deliverables:** Candle độc lập Qt, loader validate, fixture synthetic, buffer mảng vòng tự quản lý index/size; full history riêng.
+- **Học trước:** `Python dataclass CSV validation`, `circular buffer array head tail modulo`.
+- **Bài tập:** Capacity 3, push 1–8 còn `[6, 7, 8]`; parse 3 nến và báo lỗi theo dòng.
+- **File/API dự kiến:** `src/core/candle.py` — `Candle`; `src/core/csv_loader.py` — `load_candles(path: str) -> list[Candle]`; `src/core/ring_buffer.py` — `RingBuffer(capacity: int)`, `push(candle)`, `get_all()`, `is_full()`.
+- **Done:** CSV đạt contracts; invalid capacity bị từ chối; wraparound đúng, push O(1), snapshot O(K). Cải tiến prototype hiện có; deque wrapper chưa phải DSA from scratch.
+
+### Thành viên 2 — Dũng — Rendering, tọa độ, interactions
+
+- **Deliverables:** QPainter candles/axes, viewport/clipping, pan/zoom/hover; nối query tree ở M3.
+- **Học trước:** `PyQt6 QPainter QWidget paintEvent`, `affine transform world screen coordinates`, `cursor anchored zoom`.
+- **Bài tập:** Vẽ 10 nến, round trip world↔screen, zoom giữ điểm dưới cursor.
+- **File/API dự kiến:** `src/core/coordinate_math.py` — `world_to_screen(...)`, `screen_to_world(...)`; `src/ui/chart_canvas.py` — `ChartCanvasWidget`, `paintEvent(self, event)`.
+- **Done:** Đạt M2; không vẽ toàn bộ history ngoài viewport; hover ngoài data không trả nến tùy ý. Sliding Window không còn nhiệm vụ bắt buộc chính.
+
+### Thành viên 3 — Phát — Segment Tree và oracle
+
+- **Deliverables:** Custom tree min low/max high/sum volume; scan baseline; tests interval/update/capacity.
+- **Học trước:** `segment tree range minimum maximum sum point update`, `half open interval identity element`.
+- **Bài tập:** Tree trên 7 phần tử, so mọi đoạn với scan rồi cập nhật từng điểm.
+- **File/API dự kiến:** `src/algorithms/segment_tree.py` — `SegmentTree`, `query(left, right)`, `update(index, candle)`, `append(candle)`; `src/algorithms/range_scan.py` — `scan_range(...)`; dùng `RangeStats` trong interfaces.
+- **Done:** Đạt M3, đủ ba đại lượng; empty/invalid intervals rõ ràng; không gọi append có rebuild là worst-case O(log N).
+
+### Thành viên 4 — Nam (Lead) — Integration, replay, benchmark
+
+- **Deliverables:** CLI/app entry points, GUI shell, replay controller, end-to-end checks, benchmark harness, tài liệu/review.
+- **Học trước:** `Python argparse pytest tutorial`, `PyQt6 QTimer tutorial`, `Python perf_counter tracemalloc benchmark`.
+- **Bài tập:** CLI in 5 nến, timer phát lần lượt 5 record, đo scan và tree cùng input.
+- **File/API dự kiến:** `src/main_cli.py` — `run_cli_demo(csv_path: str)`; `src/main.py`; `src/ui/main_window.py`; `src/core/replay.py` — `ReplayController`; `benchmarks/benchmark_queries.py` — `run_benchmarks(...)`.
+- **Done:** Entry points chạy theo README, replay không lộ tương lai, checks toàn luồng đúng; phép đo tái lập. Mỗi role vẫn sở hữu test của mình.
+
+Các file/API trên là bản đồ trách nhiệm toàn dự án; phần M1 đã có Candle, loader và CLI (entry point thực là `main()`). Các module GUI/DSA/replay mới còn là kế hoạch.
+
+## 4. Phân công M1 — task giao cho từng thành viên
+
+**Mục tiêu M1:** CSV synthetic nhỏ → Candle hợp lệ → CLI hiển thị tóm tắt và có hướng dẫn chạy lại. **Hiện tại chỉ Hưng và Nam triển khai chính.** Phát và Dũng chưa được giao task kiểm thử riêng ở M1; có thể ôn kiến thức cho Segment Tree và GUI ở mốc sau.
+
+Các task dưới đây được giao theo tên trong roadmap; chưa phải GitHub Issues và chưa gán tài khoản GitHub. Nhánh là tên đề xuất, chưa xác nhận đã tồn tại. Mỗi người đọc `docs/interfaces.md` và `CONTRIBUTING.md` trước khi làm.
+
+| Task | Người phụ trách | Nhiệm vụ và file/đầu ra | Phụ thuộc | Trạng thái |
+| --- | --- | --- | --- | --- |
+| M1-01A | **Hưng** | Candle cơ bản, 6 trường, immutable và demo | Candle contract | [x] Đã merge PR #3 |
+| M1-03A | **Nam** | CLI dùng Candle, in 3 nến mẫu | M1-01A | [x] Đã merge PR #4 |
+| M1-02A | **Hưng** | CSV loader đọc fixture chung thành 12 Candle | M1-01A | [x] Đã merge PR #4 |
+| M1-03B | **Nam** | Nối loader vào CLI; xem toàn bộ fixture với --limit 0 | M1-02A | [x] Luồng CSV/CLI đã merge; preview limit trong PR hoàn thiện |
+| M1-01B / M1-02B | **Hưng** | Validation model/CSV, lỗi theo dòng, tests | Loader cơ bản | [ ] Đã có code/tests trong PR hoàn thiện; chờ review/merge |
+| M1-03C / M1-05 | **Nam** | Stats toàn bộ dữ liệu, error handling, preview limit, tests và README | Data validation | [ ] Đã có code/tests trong PR hoàn thiện; chờ review/merge |
+
+### Cách giao từng bước và nghiệm thu
+
+Các bước nhỏ dưới đây giữ lại để Hưng/Nam học và đọc code theo thứ tự. **Cập nhật 18/11:** implementation M1 đã hoàn thiện trên nhánh PR, 19 tests đạt; bước hiện tại là review code và chạy lại theo [báo cáo M1](docs/m1_completion.md). Không đánh dấu nghiệm thu trên máy nhóm khi chưa chạy thật.
+
+- **Hưng, bước đầu:** Học `Python dataclass cơ bản`, khai báo đủ sáu trường. Từ repo root chạy `python -m src.core.candle` (hoặc `python3`). Demo tạo một Candle với timestamp 1704067200, open 100, high 105, low 98, close 103, volume 1000; in đối tượng và close. Import từ module khác không tự in demo. Gửi Nam file, lệnh và output. Type hints chưa phải validation; phần kiểm tra dữ liệu làm ở bước sau.
+- **Nam, bước đầu:** Học import/list/for/f-string; dùng đúng class của Hưng. Chạy `python -m src.main_cli` thấy 3 nến và số lượng 3; không tạo class Candle thứ hai.
+- **Hưng, loader cơ bản:** Dùng [CSV chung 12 nến](tests/fixtures/candles_valid.csv) và [hướng dẫn](tests/fixtures/README.md), không tự tìm dữ liệu ngoài. Loader chuyển timestamp thành int, năm trường còn lại thành float và trả 12 Candle. Đây chưa phải loader hoàn thiện cho mọi input lỗi.
+- **Nam, tích hợp:** Dùng loader thật, in dữ liệu đọc từ fixture; không viết loader thứ hai. Đối chiếu số nến và các trường với file CSV.
+- **Trước khi đóng M1:** Hưng thêm tests/validation cho numeric hữu hạn, OHLC hợp lệ, volume không âm, empty/single-row, malformed, duplicate/out-of-order và lỗi theo dòng. Nam thêm CLI arguments, stats bằng scan, empty/error handling, exit status khác 0 khi lỗi và tests CLI. Hai người kiểm tra chéo, ghi lệnh thực chạy vào README. Fixture có min low 98, max high 113, tổng volume 13600 để đối chiếu.
+
+Không giao người kiểm thử chuyên trách ở bước đầu, nhưng Hưng/Nam vẫn phải kiểm tra code mình; các acceptance criteria M1 ở mục 2 vẫn áp dụng trước nghiệm thu toàn mốc.
+
+### Nhánh và trình tự phối hợp
+
+1. **Hưng + Nam** chốt API theo interfaces; mọi thay đổi contract phải trao đổi.
+2. **Hưng:** `feature/m1-csv-loader`; **Nam:** `feature/m1-cli-summary`. Commit nhỏ, bảo toàn code cũ; tích hợp qua PR review, không sao chép module giữa hai nhánh.
+3. **Phát và Dũng:** chưa có task implementation/kiểm thử riêng trong lượt đầu M1. Phát ôn list/min/max trước Segment Tree; Dũng ôn class/tọa độ trước QPainter. Phần học này không chặn Hưng/Nam.
+4. **Nam/Lead** đối chiếu acceptance criteria và review trước merge; nhờ thành viên khác review PR của Nam khi sẵn sàng. Không coi hoàn thành một task là hoàn thành cả M1.
+
+Không gán hạn ngày tùy ý khi chưa biết deadline môn học. Mỗi check-in ghi task đang làm, PR/commit, checks thực tế, blocker và bước tiếp theo. Sau M1, Dũng chủ trì chart M2; Phát chuẩn bị cây M3, Hưng tiếp tục custom buffer M3.
+
+## 5. Check-in và bước tiếp theo
+
+Mỗi check-in: demo phần chạy được, tests đã chạy, blocker, thay đổi contract và PR tiếp theo. Tick khi đạt nghiệm thu, không dựa vào số file/commit.
+
+**Bước tiếp theo:** review/merge bản hoàn thiện M1, Hưng hoặc Nam chạy lại demo/tests và ghi kết quả. Sau khi xác nhận M1, chuyển M2: chart QPainter nhỏ do Dũng chủ trì. Bổ sung rubric/deadline khi có; không tự bắt đầu GUI trong PR M1.
+
+Xem [CONTRIBUTING.md](CONTRIBUTING.md) cho workflow và [báo cáo nhóm](docs/team_plan_report.md) cho việc chuyển kế hoạch.
