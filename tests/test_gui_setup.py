@@ -63,8 +63,8 @@ from src import main as entry
 from src.ui.main_window import MainWindow
 
 class AutoClosingWindow(MainWindow):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         QTimer.singleShot(20, self.close)
 
 with patch.object(entry, 'MainWindow', AutoClosingWindow):
@@ -73,6 +73,39 @@ print('Entry point passed')
 """)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Entry point passed", result.stdout)
+
+    def test_csv_startup_passes_candles_to_window(self):
+        result = self.run_offscreen("""
+from PyQt6.QtCore import QTimer
+from unittest.mock import patch
+from src import main as entry
+from src.ui.main_window import MainWindow
+
+class CheckingWindow(MainWindow):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        assert len(self.candles) == 12
+        assert self.candles[0].timestamp == 1704067200
+        assert self.statusBar().currentMessage() == 'Loaded 12 candles.'
+        QTimer.singleShot(20, self.close)
+
+with patch.object(entry, 'MainWindow', CheckingWindow):
+    assert entry.main(['stock-chart', '--csv', 'tests/fixtures/candles_valid.csv']) == 0
+""")
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_invalid_csv_is_reported_before_gui_creation(self):
+        result = self.run_offscreen("""
+from PyQt6.QtWidgets import QApplication
+from unittest.mock import patch
+from src import main as entry
+
+with patch.object(entry, 'load_candles', side_effect=ValueError('CSV row 2: invalid OHLC bounds')):
+    assert entry.main(['stock-chart', '--csv', 'invalid.csv']) == 1
+assert QApplication.instance() is None
+""")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Error: CSV row 2: invalid OHLC bounds", result.stderr)
 
 
 if __name__ == "__main__":
