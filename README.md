@@ -89,6 +89,14 @@ python -m src.main
 
 Expected: a window titled `Stock Chart — M2`, initially 960 × 600. Closing the window ends the application. Run GUI commands on a graphical desktop; offscreen testing does not confirm on-screen appearance.
 
+To load the shared CSV into the window at startup:
+
+```bash
+python -m src.main --csv tests/fixtures/candles_valid.csv
+```
+
+The status bar displays `Loaded 12 candles.` The data is available to the window; drawing it is a later M2 task. An invalid file is reported in the terminal before the window opens. Run without `--csv` for the original blank window.
+
 See [Nam's setup and Dũng's first task](docs/m2_setup_and_dung_task.md) for environment setup, the drawing checklist, and handoff instructions. Primary-source findings are recorded in [M2 GUI research](docs/m2_gui_setup_research.md).
 
 ## Team documentation
