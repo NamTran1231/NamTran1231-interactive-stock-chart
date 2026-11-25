@@ -1,4 +1,4 @@
-"""Read-only segment tree for candle range statistics."""
+"""Segment tree for candle range statistics and point updates."""
 
 from collections.abc import Sequence
 
@@ -24,6 +24,7 @@ class SegmentTree:
 
     def __init__(self, candles: Sequence[Candle]) -> None:
         self._count = len(candles)
+        self._timestamps = tuple(candle.timestamp for candle in candles)
         self._capacity = 1
         while self._capacity < self._count:
             self._capacity *= 2
@@ -33,7 +34,26 @@ class SegmentTree:
         for index, candle in enumerate(candles, start=self._capacity):
             self._nodes[index] = RangeStats(candle.low, candle.high, candle.volume)
         for index in range(self._capacity - 1, 0, -1):
-            self._nodes[index] = _merge(self._nodes[2 * index], self._nodes[2 * index + 1])
+            self._refresh_parent(index)
+
+    def _refresh_parent(self, index: int) -> None:
+        self._nodes[index] = _merge(self._nodes[2 * index], self._nodes[2 * index + 1])
+
+    def update(self, index: int, candle: Candle) -> None:
+        """Replace one candle's statistics in O(log N) time and O(1) extra space.
+
+        Raise IndexError for an invalid index or ValueError if the timestamp changes.
+        """
+        if not 0 <= index < self._count:
+            raise IndexError(f"Invalid candle index {index} for {self._count} candles")
+        if candle.timestamp != self._timestamps[index]:
+            raise ValueError("A point update must preserve the candle timestamp")
+
+        node = self._capacity + index
+        self._nodes[node] = RangeStats(candle.low, candle.high, candle.volume)
+        while node > 1:
+            node //= 2
+            self._refresh_parent(node)
 
     def query(self, left: int, right: int) -> RangeStats | None:
         """Summarize [left, right) in O(log N) time and O(1) extra space.
