@@ -1,20 +1,22 @@
 # M2 Start Guide — Nam's Setup and Dũng's First Task
 
+The agent-assisted static preview draws one demo candle or the loaded CSV candles. Dũng's next checkpoint is to run it and explain the price-to-screen mapping. The original fixed-coordinate exercise is preserved below as optional practice.
+
 ## 1. What is ready?
 
-Nam's setup introduces an empty PyQt6 window, a runnable entry point, an optional GUI dependency file, and offscreen lifecycle tests. **It does not draw candles yet.** M1's CLI remains independent of Qt.
+The PyQt6 preview accepts validated candles from Nam's CSV startup path. The chart draws a static view, with no axes or navigation yet. M1's CLI remains independent of Qt.
 
 | File | Owner | Purpose |
 | --- | --- | --- |
 | `requirements-gui.txt` | Nam | Optional PyQt6 dependency for M2 |
-| `src/main.py` | Nam | Create QApplication, show MainWindow, run the event loop |
-| `src/ui/main_window.py` | Nam | Window title, initial size, blank central widget |
-| `src/ui/chart_canvas.py` | Dũng | Existing empty placeholder for the next drawing task |
-| `tests/test_gui_setup.py` | Nam | Optional offscreen import/window/entry-point checks |
+| `src/main.py` | Nam | Load optional CSV, show MainWindow, run the event loop |
+| `src/ui/main_window.py` | Nam | Pass the loaded candles, or one demo candle, to the canvas |
+| `src/ui/chart_canvas.py` | Dũng | Paint candle wicks and bodies using the current widget size |
+| `tests/test_gui_setup.py` | Nam | Optional offscreen startup, lifecycle, and rendering checks |
 
 ## 2. Install and run
 
-After the setup PR is merged, update your local main safely before creating a task branch. Preserve any uncommitted work first. Open a terminal at the repository root.
+Use the branch containing the static preview (`feature/m2-first-csv-chart` until merged). Preserve any uncommitted work before switching branches. Open a terminal at the repository root.
 
 Create an environment:
 
@@ -32,15 +34,21 @@ Install and start the window:
 ```bash
 python -m pip install -r requirements-gui.txt
 python -m src.main
+python -m src.main --csv tests/fixtures/candles_valid.csv
 ```
 
-Expected: an empty window titled **Stock Chart — M2**, initially **960 × 600**. It can be moved, resized, and closed. Closing the only window should end the command normally. Use `python3` instead of `python` where needed. Run on a machine with a graphical desktop; an offscreen server cannot confirm the actual on-screen appearance.
+The first launch shows one demo candle. The CSV launch shows 12 candles and `Loaded 12 candles.` in the status bar. Resize the window, minimize and restore it, then close it. Expect candles to redraw at the new size and the process to exit cleanly. Use `python3` instead of `python` where needed.
 
 If installation or startup fails, send Nam the OS, Python version, exact command, and complete error. Do not substitute PyQt5 or change the dependency range without discussing it.
 
-## 3. Dũng — first task only: draw one fixed candle
+## 3. Dũng — preview review
 
-**Task ID: M2-D01.** Your deliverable is a widget that paints one candlestick correctly whenever Qt asks it to repaint. Do not implement CSV loading, axes, pan/zoom, or hover in this task.
+- [ ] Run both preview modes on your desktop and send Nam a screenshot and your resize/restore/close results.
+- [ ] Read `src/ui/chart_canvas.py`. Explain why a higher price has a smaller screen y-coordinate and how `high`/`low` differ from `open`/`close` when drawing a candle.
+
+## 4. Archived M2-D01 — optional fixed-coordinate practice
+
+This is the original fixed-coordinate exercise. The commands, starter assumptions, and PR checklist in this section are historical. Practice on scratch code if useful; do not replace the working preview or open the original implementation PR.
 
 ### Learn only what this task needs
 
@@ -130,9 +138,9 @@ Questions or remaining problems:
 
 **Done means the checklist above is confirmed, not merely that the class exists.** Send Nam the PR link. Do not mark all M2 complete: the next task will connect multiple candles from the shared model, then add transforms/axes/interactions incrementally.
 
-## 4. Nam's handoff check
+## 5. Nam's handoff check
 
-Before Dũng starts, Nam or Dũng should confirm that the empty window works on their actual desktop. Agent-side offscreen tests verify lifecycle, not visual appearance or OS-specific desktop integration.
+Use the two launch commands above for desktop review. Run the offscreen tests for regression coverage:
 
 Run the existing tests in the GUI environment:
 
@@ -140,13 +148,12 @@ Run the existing tests in the GUI environment:
 python -m unittest discover -s tests -v
 ```
 
-Without PyQt6, the three GUI checks skip and the standard-library M1 suite still runs. With PyQt6 installed, the GUI checks use subprocesses and the offscreen platform; they do not leave a window running or require changing the production event loop.
+Without PyQt6, GUI checks skip and the standard-library M1 suite still runs. With PyQt6 installed, GUI checks use subprocesses and the offscreen platform.
 
-## 5. Setup verification record
+## 6. Preview verification record
 
 Verified on the agent's Linux environment using Python 3.14.4, PyQt6 6.12.1, and Qt 6.12.0 in an isolated virtual environment:
 
-- `python -m unittest discover -s tests -v`: **22 tests passed**, including 19 M1 checks and three GUI setup checks.
-- GUI checks confirm passive imports, an initially 960 × 600 visible offscreen window, normal close behavior, and entry-point event-loop exit.
-- No candle has been drawn, and actual desktop appearance/move/resize interaction still needs confirmation by Nam or Dũng.
+- `python -m unittest discover -s tests -v`: **25 tests passed**, including offscreen rendering and repaint after resize.
+- A desktop `xcb` smoke check opened the shared CSV preview, confirmed the status and visible chart, and closed cleanly. A teammate-machine check is still pending.
 - The test versions document this verification environment; the dependency range is not an exact lock for every team machine.
