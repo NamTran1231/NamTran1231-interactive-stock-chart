@@ -107,6 +107,45 @@ assert QApplication.instance() is None
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Error: CSV row 2: invalid OHLC bounds", result.stderr)
 
+    def test_canvas_renders_demo_and_csv_after_resize(self):
+        result = self.run_offscreen("""
+from PyQt6.QtWidgets import QApplication
+from src.core.csv_loader import load_candles
+from src.ui.main_window import MainWindow
+
+app = QApplication([])
+
+def painted_columns(window):
+    image = window.centralWidget().grab().toImage()
+    background = image.pixel(0, 0)
+    return {x for x in range(image.width())
+            if any(image.pixel(x, y) != background for y in range(image.height()))}
+
+for candles, expected in ((None, 1), (load_candles('tests/fixtures/candles_valid.csv'), 12)):
+    window = MainWindow(candles=candles)
+    window.resize(480, 300)
+    window.show()
+    app.processEvents()
+    before = painted_columns(window)
+    window.resize(640, 400)
+    app.processEvents()
+    after = painted_columns(window)
+    # On the static preview, each candle occupies a separate run of columns.
+    for columns in (before, after):
+        actual = sum(x - 1 not in columns for x in columns)
+        assert actual == expected, (actual, expected)
+    assert max(after) > max(before), 'Candle positions did not respond to resizing'
+    window.close()
+
+window = MainWindow(candles=[])
+assert window.statusBar().currentMessage() == 'Loaded 0 candles.'
+window.show()
+app.processEvents()
+assert painted_columns(window), 'Expected a visible empty-state message'
+window.close()
+""")
+        self.assertEqual(result.returncode, 0, result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

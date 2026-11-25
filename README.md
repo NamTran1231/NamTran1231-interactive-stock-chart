@@ -8,7 +8,7 @@ A university project for four students: build an OHLCV candlestick application w
 
 - Implemented: immutable validated candles, CSV loading with row-specific errors, a synthetic fixture, terminal tables, and full-dataset statistics.
 - Verified: 19 unittest tests covering the model, CSV loader, and CLI subprocesses. See the [M1 completion report](docs/m1_completion.md).
-- M2 foundation: an empty PyQt6 window is implemented; the chart itself, integrated custom DSA, replay, and benchmarking are still planned. Placeholder files do not represent working features.
+- M2 preview: PyQt6 displays a demo candle or candlesticks from a CSV. Axes, pan, zoom, and hover are still planned.
 - The older Ring Buffer prototype uses deque/PyQt5 and needs revision for M3.
 - The CI workflow is still empty. An independent run on Hưng's or Nam's machine has not been confirmed.
 
@@ -80,7 +80,7 @@ Other scaffold files remain placeholders. The AAPL/BTC datasets are on the proto
 
 ## M2 desktop setup (English)
 
-The M2 setup adds an **empty window**, not a working candle chart. M1 remains usable without Qt. In an activated virtual environment, run from the repository root:
+The M2 desktop preview displays **one demo candle** when launched without a CSV. M1 remains usable without Qt. In an activated virtual environment, run from the repository root:
 
 ```bash
 python -m pip install -r requirements-gui.txt
@@ -95,7 +95,7 @@ To load the shared CSV into the window at startup:
 python -m src.main --csv tests/fixtures/candles_valid.csv
 ```
 
-The status bar displays `Loaded 12 candles.` The data is available to the window; drawing it is a later M2 task. An invalid file is reported in the terminal before the window opens. Run without `--csv` for the original blank window.
+The shared fixture displays 12 candlesticks and the status bar reads `Loaded 12 candles.` The chart fits the loaded price range and redraws when resized. An empty CSV displays `No candle data.` An invalid file is reported in the terminal before the window opens. For now, use a small CSV; viewport navigation and large-data rendering are later milestones.
 
 See [Nam's setup and Dũng's first task](docs/m2_setup_and_dung_task.md) for environment setup, the drawing checklist, and handoff instructions. Primary-source findings are recorded in [M2 GUI research](docs/m2_gui_setup_research.md).
 
