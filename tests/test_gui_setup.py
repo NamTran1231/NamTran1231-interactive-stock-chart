@@ -115,8 +115,11 @@ from src.ui.main_window import MainWindow
 
 app = QApplication([])
 
-def painted_columns(window):
-    image = window.centralWidget().grab().toImage()
+def painted_columns(window, *, plot_only=False):
+    canvas = window.centralWidget()
+    image = canvas.grab().toImage()
+    if plot_only:
+        image = image.copy(canvas._plot().toRect())
     background = image.pixel(0, 0)
     return {x for x in range(image.width())
             if any(image.pixel(x, y) != background for y in range(image.height()))}
@@ -126,11 +129,11 @@ for candles, expected in ((None, 1), (load_candles('tests/fixtures/candles_valid
     window.resize(480, 300)
     window.show()
     app.processEvents()
-    before = painted_columns(window)
+    before = painted_columns(window, plot_only=True)
     window.resize(640, 400)
     app.processEvents()
-    after = painted_columns(window)
-    # On the static preview, each candle occupies a separate run of columns.
+    after = painted_columns(window, plot_only=True)
+    # Each candle occupies a separate run of columns inside the plot.
     for columns in (before, after):
         actual = sum(x - 1 not in columns for x in columns)
         assert actual == expected, (actual, expected)
@@ -143,6 +146,109 @@ window.show()
 app.processEvents()
 assert painted_columns(window), 'Expected a visible empty-state message'
 window.close()
+""")
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_100_candle_csv_navigation_and_edges(self):
+        result = self.run_offscreen("""
+from PyQt6.QtCore import QPoint, QPointF, Qt
+from PyQt6.QtGui import QMouseEvent, QWheelEvent
+from PyQt6.QtTest import QTest
+from PyQt6.QtWidgets import QApplication
+from src.core.csv_loader import load_candles
+from src.ui.main_window import MainWindow
+
+app = QApplication([])
+candles = load_candles('tests/fixtures/candles_m2_100.csv')
+window = MainWindow(candles=candles)
+window.show()
+app.processEvents()
+canvas = window.centralWidget()
+assert window.statusBar().currentMessage() == 'Loaded 100 candles.'
+image = canvas.grab().toImage().copy(canvas._plot().toRect())
+background = image.pixel(0, 0)
+painted = {x for x in range(image.width())
+           if any(image.pixel(x, y) != background for y in range(image.height()))}
+assert sum(x - 1 not in painted for x in painted) == 100
+
+def point(fraction):
+    plot = canvas._plot()
+    return QPoint(round(plot.left() + fraction * plot.width()), round(plot.center().y()))
+
+def hover(position):
+    QTest.mouseMove(canvas, position + QPoint(0, -1))
+    QTest.mouseMove(canvas, position)
+    app.processEvents()
+    return canvas.toolTip()
+
+def wheel(position, steps):
+    event = QWheelEvent(QPointF(position), QPointF(canvas.mapToGlobal(position)),
+                        QPoint(), QPoint(0, 120 * steps), Qt.MouseButton.NoButton,
+                        Qt.KeyboardModifier.NoModifier, Qt.ScrollPhase.NoScrollPhase, False)
+    app.sendEvent(canvas, event)
+
+def drag(start, end):
+    QTest.mousePress(canvas, Qt.MouseButton.LeftButton, pos=start)
+    move = QMouseEvent(QMouseEvent.Type.MouseMove, QPointF(end),
+                       QPointF(canvas.mapToGlobal(end)), Qt.MouseButton.NoButton,
+                       Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
+    app.sendEvent(canvas, move)
+    QTest.mouseRelease(canvas, Qt.MouseButton.LeftButton, pos=end)
+
+def assert_edges():
+    assert '00:00:00 UTC' in hover(point(0.002))
+    assert '01:39:00 UTC' in hover(point(0.998))
+    assert hover(point(-0.01)) == ''
+    assert hover(point(1.0)) == ''
+
+assert_edges()
+anchor = point(0.52)
+details = hover(anchor)
+assert all(field in details for field in ('Open ', 'High ', 'Low ', 'Close ', 'Volume '))
+wheel(anchor, 5)
+assert hover(anchor) == details, 'Zoom should preserve the candle under the cursor'
+assert '00:00:00 UTC' not in hover(point(0.002))
+assert '01:39:00 UTC' not in hover(point(0.998))
+drag(point(0.02), point(3.2))
+assert '00:00:00 UTC' in hover(point(0.002)), 'Pan must stop at the first candle'
+drag(point(0.98), point(-2.2))
+assert '01:39:00 UTC' in hover(point(0.998)), 'Pan must stop at the last candle'
+wheel(point(1.0), -10)
+assert '00:00:00 UTC' not in hover(point(0.002)), 'Zoom outside the plot must be ignored'
+wheel(anchor, -10)
+assert_edges()
+window.resize(600, 360)
+app.processEvents()
+assert_edges()
+window.close()
+""")
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_flat_price_and_tiny_viewport(self):
+        result = self.run_offscreen("""
+from PyQt6.QtCore import QPoint
+from PyQt6.QtTest import QTest
+from PyQt6.QtWidgets import QApplication
+from src.core.candle import Candle
+from src.ui.chart_canvas import ChartCanvasWidget
+
+app = QApplication([])
+canvas = ChartCanvasWidget([Candle(1704067200, 0, 0, 0, 0, 0)])
+canvas.resize(480, 300)
+canvas.show()
+app.processEvents()
+plot = canvas._plot()
+center = plot.center().toPoint()
+image = canvas.grab().toImage()
+assert image.pixel(center) != image.pixel(0, 0), 'A flat candle must remain visible'
+QTest.mouseMove(canvas, center)
+assert 'Close 0' in canvas.toolTip()
+canvas.resize(80, 40)
+app.processEvents()
+QTest.mouseMove(canvas, QPoint(20, 20))
+assert canvas.toolTip() == ''
+assert not canvas.grab().isNull()
+canvas.close()
 """)
         self.assertEqual(result.returncode, 0, result.stderr)
 

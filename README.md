@@ -8,7 +8,7 @@ A university project for four students: build an OHLCV candlestick application w
 
 - Implemented: immutable validated candles, CSV loading with row-specific errors, a synthetic fixture, terminal tables, and full-dataset statistics.
 - Verified: 19 unittest tests covering the model, CSV loader, and CLI subprocesses. See the [M1 completion report](docs/m1_completion.md).
-- M2 preview: PyQt6 displays a demo candle or candlesticks from a CSV. Axes, pan, zoom, and hover are still planned.
+- M2 chart: PyQt6 displays a demo candle or candlesticks from a CSV, with price labels, UTC time labels, pan, zoom, and hover.
 - The older Ring Buffer prototype uses deque/PyQt5 and needs revision for M3.
 - The CI workflow is still empty. An independent run on Hưng's or Nam's machine has not been confirmed.
 
@@ -95,7 +95,13 @@ To load the shared CSV into the window at startup:
 python -m src.main --csv tests/fixtures/candles_valid.csv
 ```
 
-The shared fixture displays 12 candlesticks and the status bar reads `Loaded 12 candles.` The chart fits the loaded price range and redraws when resized. An empty CSV displays `No candle data.` An invalid file is reported in the terminal before the window opens. For now, use a small CSV; viewport navigation and large-data rendering are later milestones.
+The shared fixture displays 12 candlesticks and the status bar reads `Loaded 12 candles.` The right axis shows the visible price extremes and the bottom axis shows UTC time. Scroll over the plot to zoom around the pointer, drag with the left mouse button to pan after zooming, and pause over a candle slot to see its timestamp and OHLCV values. Use this deterministic fixture to try the controls with 100 candles:
+
+```bash
+python -m src.main --csv tests/fixtures/candles_m2_100.csv
+```
+
+Zoom out to restore the full view. The chart redraws when resized, and hover clears outside the plot. An empty CSV displays `No candle data.` An invalid file is reported in the terminal before the window opens. This view is designed for small CSVs; dense views will use aggregation in M5.
 
 See [Nam's setup and Dũng's first task](docs/m2_setup_and_dung_task.md) for environment setup, the drawing checklist, and handoff instructions. Primary-source findings are recorded in [M2 GUI research](docs/m2_gui_setup_research.md).
 

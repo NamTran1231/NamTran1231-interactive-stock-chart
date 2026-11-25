@@ -1,5 +1,7 @@
 # M2 Start Guide — Nam's Setup and Dũng's First Task
 
+The interactive M2 follow-up adds price and UTC time labels, wheel zoom, drag-to-pan, and OHLCV hover. See the [current run commands and controls](../README.md#m2-desktop-setup-english). The static-preview notes below document the earlier checkpoint.
+
 The agent-assisted static preview draws one demo candle or the loaded CSV candles. Dũng's next checkpoint is to run it and explain the price-to-screen mapping. The original fixed-coordinate exercise is preserved below as optional practice.
 
 ## 1. What is ready?
@@ -157,3 +159,9 @@ Verified on the agent's Linux environment using Python 3.14.4, PyQt6 6.12.1, and
 - `python -m unittest discover -s tests -v`: **25 tests passed**, including offscreen rendering and repaint after resize.
 - A desktop `xcb` smoke check opened the shared CSV preview, confirmed the status and visible chart, and closed cleanly. A teammate-machine check is still pending.
 - The test versions document this verification environment; the dependency range is not an exact lock for every team machine.
+
+## 7. Interactive chart verification
+
+Run `python -m src.main --csv tests/fixtures/candles_m2_100.csv` on a graphical desktop. Expect 100 candles and `Loaded 100 candles.` Zoom around a candle, drag in both directions, and hover inside and outside the plot. Close after resizing the window.
+
+The automated suite verified all 100 painted candles, cursor-centered zoom, pan limits at both ends, off-plot hover and wheel handling, resize, and flat and tiny views. All 27 tests passed. An agent-run Linux desktop smoke test also verified the 100-candle startup, hover, zoom, pan, resize, and normal shutdown. The next teammate check is to run these steps on their own desktop.
