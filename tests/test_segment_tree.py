@@ -112,6 +112,62 @@ class SegmentTreeTests(unittest.TestCase):
         with self.assertRaises(IndexError):
             SegmentTree([]).update(0, candle)
 
+    def test_append_from_empty_through_repeated_growth(self) -> None:
+        tree = SegmentTree([])
+        candles: list[Candle] = []
+        for index in range(17):
+            # The first timestamp can be negative; only later timestamps must increase.
+            candle = Candle(index - 20, -8, -4 + index, -10 - index, -5, index / 10)
+            tree.append(candle)
+            candles.append(candle)
+            self.assert_all_ranges_match(tree, candles)
+
+    def test_append_after_update_preserves_replaced_stats_through_growth(self) -> None:
+        path = Path(__file__).parent / "fixtures" / "candles_m2_100.csv"
+        source = load_candles(path)[:10]
+        candles = source[:3]
+        tree = SegmentTree(candles)
+        for candle in source[3:]:
+            # Alternate which leaf is replaced before appending, including the latest.
+            index = 0 if len(candles) % 2 else len(candles) - 1
+            updated = replace(candles[index], low=80, high=130, volume=2.25)
+            tree.update(index, updated)
+            candles[index] = updated
+            tree.append(candle)
+            candles.append(candle)
+            self.assert_all_ranges_match(tree, candles)
+
+    def test_append_rejects_duplicate_and_older_timestamps_without_mutation(self) -> None:
+        first = Candle(timestamp=10, open=5, high=7, low=4, close=6, volume=1.5)
+        second = replace(first, timestamp=20, high=9)
+        candles = [first, second]
+        tree = SegmentTree(candles)
+        for timestamp in (20, 10, 15, -1):
+            with self.subTest(timestamp=timestamp):
+                with self.assertRaises(ValueError):
+                    tree.append(replace(second, timestamp=timestamp, low=0, volume=50))
+                self.assert_all_ranges_match(tree, candles)
+                with self.assertRaises(IndexError):
+                    tree.query(2, 3)
+
+        third = replace(second, timestamp=30)
+        tree.append(third)
+        candles.append(third)
+        self.assert_all_ranges_match(tree, candles)
+        for timestamp in (30, 25):
+            with self.subTest(timestamp=timestamp):
+                with self.assertRaises(ValueError):
+                    tree.append(replace(third, timestamp=timestamp, volume=50))
+                self.assert_all_ranges_match(tree, candles)
+                with self.assertRaises(IndexError):
+                    tree.query(3, 4)
+
+    def assert_all_ranges_match(self, tree: SegmentTree, candles: list[Candle]) -> None:
+        for left in range(len(candles) + 1):
+            for right in range(left, len(candles) + 1):
+                with self.subTest(count=len(candles), left=left, right=right):
+                    self.assert_stats_match(tree.query(left, right), scan_range(candles, left, right))
+
     def assert_stats_match(self, actual: RangeStats | None, expected: RangeStats | None) -> None:
         if expected is None:
             self.assertIsNone(actual)

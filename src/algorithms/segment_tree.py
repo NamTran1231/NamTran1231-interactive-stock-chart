@@ -1,4 +1,4 @@
-"""Segment tree for candle range statistics and point updates."""
+"""Growable segment tree for candle range statistics."""
 
 from collections.abc import Sequence
 
@@ -24,15 +24,19 @@ class SegmentTree:
 
     def __init__(self, candles: Sequence[Candle]) -> None:
         self._count = len(candles)
-        self._timestamps = tuple(candle.timestamp for candle in candles)
         self._capacity = 1
         while self._capacity < self._count:
             self._capacity *= 2
 
         # Index 1 is the root; leaves start at capacity. Extra leaves stay empty.
         self._nodes: list[RangeStats | None] = [None] * (2 * self._capacity)
-        for index, candle in enumerate(candles, start=self._capacity):
-            self._nodes[index] = RangeStats(candle.low, candle.high, candle.volume)
+        self._timestamps: list[int | None] = [None] * self._capacity
+        for index, candle in enumerate(candles):
+            self._timestamps[index] = candle.timestamp
+            self._nodes[self._capacity + index] = RangeStats(candle.low, candle.high, candle.volume)
+        self._rebuild_parents()
+
+    def _rebuild_parents(self) -> None:
         for index in range(self._capacity - 1, 0, -1):
             self._refresh_parent(index)
 
@@ -48,7 +52,35 @@ class SegmentTree:
             raise IndexError(f"Invalid candle index {index} for {self._count} candles")
         if candle.timestamp != self._timestamps[index]:
             raise ValueError("A point update must preserve the candle timestamp")
+        self._write_leaf(index, candle)
 
+    def append(self, candle: Candle) -> None:
+        """Add a candle with a strictly newer timestamp, or raise ValueError.
+
+        Takes O(log N) with spare capacity and O(N) when the tree doubles,
+        for amortized O(log N) time across a sequence of appends.
+        """
+        latest = self._timestamps[self._count - 1] if self._count else None
+        if latest is not None and candle.timestamp <= latest:
+            raise ValueError("An appended candle must have a newer timestamp")
+
+        if self._count == self._capacity:
+            self._grow()
+        self._timestamps[self._count] = candle.timestamp
+        self._write_leaf(self._count, candle)
+        self._count += 1
+
+    def _grow(self) -> None:
+        old_capacity = self._capacity
+        self._capacity *= 2
+        nodes: list[RangeStats | None] = [None] * (2 * self._capacity)
+        # Copy current leaves, which may include earlier point replacements.
+        nodes[self._capacity:self._capacity + self._count] = self._nodes[old_capacity:]
+        self._nodes = nodes
+        self._timestamps.extend([None] * old_capacity)
+        self._rebuild_parents()
+
+    def _write_leaf(self, index: int, candle: Candle) -> None:
         node = self._capacity + index
         self._nodes[node] = RangeStats(candle.low, candle.high, candle.volume)
         while node > 1:
