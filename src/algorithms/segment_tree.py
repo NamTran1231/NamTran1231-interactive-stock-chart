@@ -19,6 +19,11 @@ def _merge(left: RangeStats | None, right: RangeStats | None) -> RangeStats | No
     )
 
 
+def _leaf_stats(candle: Candle) -> RangeStats:
+    # Match the scan's float accumulation even for directly constructed candles.
+    return RangeStats(candle.low, candle.high, float(candle.volume))
+
+
 class SegmentTree:
     """Snapshot candle statistics in O(N) build time and O(N) storage."""
 
@@ -33,7 +38,7 @@ class SegmentTree:
         self._timestamps: list[int | None] = [None] * self._capacity
         for index, candle in enumerate(candles):
             self._timestamps[index] = candle.timestamp
-            self._nodes[self._capacity + index] = RangeStats(candle.low, candle.high, candle.volume)
+            self._nodes[self._capacity + index] = _leaf_stats(candle)
         self._rebuild_parents()
 
     def _rebuild_parents(self) -> None:
@@ -82,7 +87,7 @@ class SegmentTree:
 
     def _write_leaf(self, index: int, candle: Candle) -> None:
         node = self._capacity + index
-        self._nodes[node] = RangeStats(candle.low, candle.high, candle.volume)
+        self._nodes[node] = _leaf_stats(candle)
         while node > 1:
             node //= 2
             self._refresh_parent(node)

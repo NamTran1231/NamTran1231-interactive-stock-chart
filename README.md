@@ -9,7 +9,8 @@ A university project for four students: build an OHLCV candlestick application w
 - Implemented: immutable validated candles, CSV loading with row-specific errors, a synthetic fixture, terminal tables, and full-dataset statistics.
 - Verified: 19 unittest tests covering the model, CSV loader, and CLI subprocesses. See the [M1 completion report](docs/m1_completion.md).
 - M2 chart: PyQt6 displays a demo candle or candlesticks from a CSV, with price labels, UTC time labels, pan, zoom, and hover.
-- The older Ring Buffer prototype uses deque/PyQt5 and needs revision for M3.
+- M3: the chart queries a custom Segment Tree for visible price bounds.
+- M3 also provides a fixed-capacity circular-array Ring Buffer for recent candles. It is ready for replay integration.
 - The CI workflow is still empty. An independent run on Hưng's or Nam's machine has not been confirmed.
 
 ## First-release scope

@@ -8,6 +8,7 @@ from PyQt6.QtCore import QEvent, QLineF, QPointF, QRectF, Qt
 from PyQt6.QtGui import QColor, QMouseEvent, QPaintEvent, QPainter, QResizeEvent, QWheelEvent
 from PyQt6.QtWidgets import QToolTip, QWidget
 
+from src.algorithms.segment_tree import SegmentTree
 from src.core.candle import Candle
 
 
@@ -23,6 +24,7 @@ class ChartCanvasWidget(QWidget):
     def __init__(self, candles: Sequence[Candle]) -> None:
         super().__init__()
         self._candles = tuple(candles)
+        self._price_index = SegmentTree(self._candles)
         # The viewport is measured in candle slots, including fractional slots.
         self._left = 0.0
         self._span = float(len(self._candles))
@@ -125,9 +127,10 @@ class ChartCanvasWidget(QWidget):
 
             first = floor(self._left)
             end = min(len(self._candles), ceil(self._left + self._span))
-            visible = self._candles[first:end]
-            low = min(candle.low for candle in visible)
-            high = max(candle.high for candle in visible)
+            stats = self._price_index.query(first, end)
+            if stats is None:
+                return
+            low, high = stats.min_low, stats.max_high
             span = high - low
             # Scaling before subtraction avoids overflow for extreme signed prices.
             scale = max(abs(low), abs(high)) if span == float("inf") else 1.0
@@ -173,7 +176,8 @@ class ChartCanvasWidget(QWidget):
             falling = QColor("#c23737")
             painter.setPen(QColor("#374151"))
             painter.setClipRect(plot)
-            for index, candle in enumerate(visible, start=first):
+            for index in range(first, end):
+                candle = self._candles[index]
                 x = candle_x(index)
                 painter.drawLine(QLineF(x, price_y(candle.high), x, price_y(candle.low)))
                 open_y = price_y(candle.open)
