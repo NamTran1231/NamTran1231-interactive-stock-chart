@@ -151,10 +151,13 @@ window.close()
 
     def test_100_candle_csv_navigation_and_edges(self):
         result = self.run_offscreen("""
+from unittest.mock import patch
 from PyQt6.QtCore import QPoint, QPointF, Qt
-from PyQt6.QtGui import QMouseEvent, QWheelEvent
+from PyQt6.QtGui import QMouseEvent, QPainter, QWheelEvent
 from PyQt6.QtTest import QTest
 from PyQt6.QtWidgets import QApplication
+from src.algorithms.range_scan import scan_range
+from src.algorithms.segment_tree import SegmentTree
 from src.core.csv_loader import load_candles
 from src.ui.main_window import MainWindow
 
@@ -209,7 +212,37 @@ wheel(anchor, 5)
 assert hover(anchor) == details, 'Zoom should preserve the candle under the cursor'
 assert '00:00:00 UTC' not in hover(point(0.002))
 assert '01:39:00 UTC' not in hover(point(0.998))
-drag(point(0.02), point(3.2))
+queried = []
+labels = []
+original_query = SegmentTree.query
+
+class RecordingPainter(QPainter):
+    def drawText(self, *args):
+        labels.append(args[-1])
+        return super().drawText(*args)
+
+def checked_query(tree, left, right):
+    stats = original_query(tree, left, right)
+    expected = scan_range(candles, left, right)
+    assert (stats.min_low, stats.max_high) == (expected.min_low, expected.max_high)
+    queried.append((left, right, expected))
+    return stats
+
+def assert_visible_labels():
+    labels.clear()
+    canvas.grab()
+    expected = queried[-1][2]
+    assert f'{expected.min_low:.2f}' in labels
+    assert f'{expected.max_high:.2f}' in labels
+
+with patch.object(SegmentTree, 'query', checked_query), patch('src.ui.chart_canvas.QPainter', RecordingPainter):
+    assert_visible_labels()
+    assert queried and 0 < queried[-1][0] < queried[-1][1] < len(candles)
+    zoomed = queried[-1]
+    drag(point(0.02), point(3.2))
+    assert_visible_labels()
+    assert queried[-1][0] == 0 and queried[-1][1] < zoomed[1]
+    assert queried[-1][2].min_low != zoomed[2].min_low
 assert '00:00:00 UTC' in hover(point(0.002)), 'Pan must stop at the first candle'
 drag(point(0.98), point(-2.2))
 assert '01:39:00 UTC' in hover(point(0.998)), 'Pan must stop at the last candle'

@@ -13,6 +13,11 @@ from src.core.csv_loader import load_candles
 
 
 class SegmentTreeTests(unittest.TestCase):
+    def test_large_integer_volumes_can_mix_with_floats(self) -> None:
+        candle = Candle(1, 5, 7, 4, 6, 10**308)
+        candles = [candle, replace(candle, timestamp=2), replace(candle, timestamp=3, volume=0.5)]
+        self.assertEqual(SegmentTree(candles).query(0, 3), scan_range(candles, 0, 3))
+
     def test_every_range_with_negative_prices_and_fractional_volume(self) -> None:
         candles = [
             Candle(timestamp=1, open=-6, high=-4, low=-8, close=-5, volume=0.1),
