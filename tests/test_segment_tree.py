@@ -1,5 +1,6 @@
-"""Compare static segment-tree queries with the linear range scan."""
+"""Compare segment-tree queries with the linear range scan."""
 
+from dataclasses import replace
 from pathlib import Path
 import random
 import unittest
@@ -53,6 +54,63 @@ class SegmentTreeTests(unittest.TestCase):
         for left, right in ((-1, 0), (0, 2), (1, 0), (2, 2)):
             with self.subTest(left=left, right=right), self.assertRaises(IndexError):
                 tree.query(left, right)
+
+    def test_point_updates_match_the_scan(self) -> None:
+        path = Path(__file__).parent / "fixtures" / "candles_m2_100.csv"
+        original = load_candles(path)[:9]
+        snapshot = original.copy()
+        expected = original.copy()
+        tree = SegmentTree(original)
+        rng = random.Random(2026)
+        for index in (0, 8, 4, 4, 0):
+            current = expected[index]
+            updated = replace(
+                current, low=current.low - 10, high=current.high + 10,
+                volume=rng.randrange(100) / 10,
+            )
+            tree.update(index, updated)
+            expected[index] = updated
+            for left in range(len(expected) + 1):
+                for right in range(left, len(expected) + 1):
+                    with self.subTest(index=index, left=left, right=right):
+                        self.assert_stats_match(tree.query(left, right), scan_range(expected, left, right))
+        self.assertEqual(original, snapshot)
+
+    def test_update_removes_old_extremes(self) -> None:
+        widest = Candle(timestamp=1, open=5, high=20, low=1, close=6, volume=4)
+        neighbor = Candle(timestamp=2, open=5, high=8, low=3, close=6, volume=2)
+        tree = SegmentTree([widest, neighbor])
+
+        tree.update(0, replace(widest, high=7, low=4, volume=1))
+
+        self.assertEqual(tree.query(0, 2), RangeStats(3, 8, 3))
+        self.assertEqual(tree.query(1, 2), RangeStats(3, 8, 2))
+
+    def test_single_candle_update(self) -> None:
+        candle = Candle(timestamp=1, open=5, high=7, low=4, close=6, volume=1.5)
+        tree = SegmentTree([candle])
+        tree.update(0, replace(candle, volume=0))
+        self.assertEqual(tree.query(0, 1), RangeStats(4, 7, 0))
+
+    def test_invalid_updates_leave_the_tree_unchanged(self) -> None:
+        candle = Candle(timestamp=1, open=5, high=7, low=4, close=6, volume=1.5)
+        candles = [candle, replace(candle, timestamp=2), replace(candle, timestamp=3)]
+        tree = SegmentTree(candles)
+        replacement = replace(candle, low=0, high=15, volume=50)
+        for index, candidate, error in (
+            (-1, replacement, IndexError),
+            (3, replacement, IndexError),
+            (0, replace(replacement, timestamp=2), ValueError),
+            (0, replace(replacement, timestamp=4), ValueError),
+        ):
+            with self.subTest(index=index, timestamp=candidate.timestamp):
+                with self.assertRaises(error):
+                    tree.update(index, candidate)
+                for leaf in range(len(candles)):
+                    self.assertEqual(tree.query(leaf, leaf + 1), RangeStats(4, 7, 1.5))
+                self.assertEqual(tree.query(0, 3), RangeStats(4, 7, 4.5))
+        with self.assertRaises(IndexError):
+            SegmentTree([]).update(0, candle)
 
     def assert_stats_match(self, actual: RangeStats | None, expected: RangeStats | None) -> None:
         if expected is None:
